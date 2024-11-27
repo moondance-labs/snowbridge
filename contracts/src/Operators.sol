@@ -14,7 +14,6 @@
 // along with Tanssi.  If not, see <http://www.gnu.org/licenses/>
 pragma solidity 0.8.25;
 
-import {console2} from "forge-std/console2.sol";
 import {BeefyClient} from "./BeefyClient.sol";
 import {ScaleCodec} from "./utils/ScaleCodec.sol";
 import {SubstrateTypes} from "./SubstrateTypes.sol";
@@ -36,7 +35,6 @@ library Operators {
             revert Operators__OperatorsKeysCannotBeEmpty();
         }
         uint256 validatorsKeysLength = operatorsKeys.length;
-        console2.log(validatorsKeysLength);
         if (validatorsKeysLength > MAX_OPERATORS) {
             revert Operators__OperatorsLengthTooLong();
         }
