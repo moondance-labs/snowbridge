@@ -25,18 +25,18 @@ library Operators {
     error Operators__OperatorsLengthTooLong();
     error Operators__OperatorsKeysCannotBeEmpty();
 
-    uint8 private constant VALIDATOR_KEY_HEX_LENGTH = 32 * 2;
+    uint8 private constant VALIDATOR_KEY_HEX_LENGTH = 32;
     uint16 private constant MAX_OPERATORS = 1000;
 
     function encodeOperatorsData(bytes calldata operatorsKeys, ParaID dest) internal returns (Ticket memory ticket) {
         if (operatorsKeys.length == 0) {
             revert Operators__OperatorsKeysCannotBeEmpty();
         }
+
         if (operatorsKeys.length % VALIDATOR_KEY_HEX_LENGTH != 0) {
             revert Operators__UnsupportedOperatorsLength();
         }
         uint256 validatorsKeysLength = operatorsKeys.length / VALIDATOR_KEY_HEX_LENGTH;
-
         if (validatorsKeysLength > MAX_OPERATORS) {
             revert Operators__OperatorsLengthTooLong();
         }
