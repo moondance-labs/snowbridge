@@ -20,27 +20,32 @@ import {SubstrateTypes} from "./SubstrateTypes.sol";
 import {MultiAddress, Ticket, Costs, ParaID} from "./Types.sol";
 import {IGateway} from "./interfaces/IGateway.sol";
 
-library Validators {
-    error Validators__UnsupportedValidatorsLength();
-    error Validators__ValidatorsLengthTooLong();
+library Operators {
+    error Operators__UnsupportedOperatorsLength();
+    error Operators__OperatorsLengthTooLong();
+    error Operators__OperatorsKeysCannotBeEmpty();
 
     uint8 private constant VALIDATOR_KEY_HEX_LENGTH = 32 * 2;
+    uint16 private constant MAX_OPERATORS = 1000;
 
-    function encodeValidatorsData(bytes calldata validatorsKeys, ParaID dest) internal returns (Ticket memory ticket) {
-        if (validatorsKeys.length % VALIDATOR_KEY_HEX_LENGTH != 0) {
-            revert Validators__UnsupportedValidatorsLength();
+    function encodeOperatorsData(bytes calldata operatorsKeys, ParaID dest) internal returns (Ticket memory ticket) {
+        if (operatorsKeys.length == 0) {
+            revert Operators__OperatorsKeysCannotBeEmpty();
         }
-        uint256 validatorsKeysLength = validatorsKeys.length / VALIDATOR_KEY_HEX_LENGTH;
+        if (operatorsKeys.length % VALIDATOR_KEY_HEX_LENGTH != 0) {
+            revert Operators__UnsupportedOperatorsLength();
+        }
+        uint256 validatorsKeysLength = operatorsKeys.length / VALIDATOR_KEY_HEX_LENGTH;
 
-        if (validatorsKeysLength > 1000) {
-            revert Validators__ValidatorsLengthTooLong();
+        if (validatorsKeysLength > MAX_OPERATORS) {
+            revert Operators__OperatorsLengthTooLong();
         }
 
         ticket.dest = dest;
-        // For now mock it to 0
+        //TODO For now mock it to 0
         ticket.costs = Costs(0, 0);
 
-        ticket.payload = SubstrateTypes.EncodedValidatorsData(validatorsKeys, uint32(validatorsKeysLength));
-        emit IGateway.ValidatorsDataCreated(validatorsKeysLength, ticket.payload);
+        ticket.payload = SubstrateTypes.EncodedOperatorsData(operatorsKeys, uint32(validatorsKeysLength));
+        emit IGateway.OperatorsDataCreated(validatorsKeysLength, ticket.payload);
     }
 }

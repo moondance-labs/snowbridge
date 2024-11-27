@@ -6,7 +6,7 @@ import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
 import {Verification} from "./Verification.sol";
 
 import {Assets} from "./Assets.sol";
-import {Validators} from "./Validators.sol";
+import {Operators} from "./Operators.sol";
 import {AgentExecutor} from "./AgentExecutor.sol";
 import {Agent} from "./Agent.sol";
 import {
@@ -466,8 +466,8 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         _submitOutbound(ticket);
     }
 
-    function sendValidatorsData(bytes calldata data, ParaID destinationChain) external payable {
-        Ticket memory ticket = Validators.encodeValidatorsData(data, destinationChain);
+    function sendOperatorsData(bytes calldata data, ParaID destinationChain) external payable {
+        Ticket memory ticket = Operators.encodeOperatorsData(data, destinationChain);
         _submitOutbound(ticket);
     }
 
