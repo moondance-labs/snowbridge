@@ -197,6 +197,14 @@ library SubstrateTypes {
         );
     }
 
+    enum Message {
+        V0
+    }
+
+    enum OutboundCommandV1 {
+        ReceiveValidators
+    }
+
     function EncodedOperatorsData(bytes32[] calldata operatorsKeys, uint32 operatorsCount)
         internal
         pure
@@ -208,6 +216,13 @@ library SubstrateTypes {
                 operatorsFlattened[i * 32 + j] = operatorsKeys[i][j];
             }
         }
-        return bytes.concat(bytes4(0x70150038), ScaleCodec.encodeCompactU32(operatorsCount), operatorsFlattened);
+
+        return bytes.concat(
+            bytes4(0x70150038),
+            bytes1(uint8(Message.V0)),
+            bytes1(uint8(OutboundCommandV1.ReceiveValidators)),
+            ScaleCodec.encodeCompactU32(operatorsCount),
+            operatorsFlattened
+        );
     }
 }

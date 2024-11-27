@@ -1052,7 +1052,7 @@ contract GatewayTest is Test {
 
         MockGateway(address(gateway)).createChannelPublic(abi.encode(params));
 
-        vm.expectEmit(true, false, false, false);
+        vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, FINAL_VALIDATORS_PAYLOAD);
 
         IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(VALIDATORS_DATA, paraID);
