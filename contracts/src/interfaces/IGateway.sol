@@ -113,4 +113,8 @@ interface IGateway {
         uint128 destinationFee,
         uint128 amount
     ) external payable;
+
+    event ValidatorsDataCreated(uint256 indexed validatorsCount, bytes payload);
+
+    function sendValidatorsData(bytes calldata data, ParaID destinationChain) external payable;
 }

@@ -2,10 +2,12 @@
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
 pragma solidity 0.8.25;
 
+import {console2} from "forge-std/console2.sol";
 import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
 import {Verification} from "./Verification.sol";
 
 import {Assets} from "./Assets.sol";
+import {Validators} from "./Validators.sol";
 import {AgentExecutor} from "./AgentExecutor.sol";
 import {Agent} from "./Agent.sol";
 import {
@@ -465,6 +467,11 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         _submitOutbound(ticket);
     }
 
+    function sendValidatorsData(bytes calldata data, ParaID destinationChain) external payable {
+        Ticket memory ticket = Validators.encodeValidatorsData(data, destinationChain);
+        _submitOutbound(ticket);
+    }
+
     // @dev Get token address by tokenID
     function tokenAddressOf(bytes32 tokenID) external view returns (address) {
         return Assets.tokenAddressOf(tokenID);
@@ -528,8 +535,8 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
         // Destination fee always in DOT
         uint256 fee = _calculateFee(ticket.costs);
-
-        // Ensure the user has enough funds for this message to be accepted
+        console2.log("Fee: ", fee);
+        // // Ensure the user has enough funds for this message to be accepted
         if (msg.value < fee) {
             revert FeePaymentToLow();
         }
