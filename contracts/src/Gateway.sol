@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
 pragma solidity 0.8.25;
 
-import {console2} from "forge-std/console2.sol";
 import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
 import {Verification} from "./Verification.sol";
 
@@ -535,8 +534,8 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
         // Destination fee always in DOT
         uint256 fee = _calculateFee(ticket.costs);
-        console2.log("Fee: ", fee);
-        // // Ensure the user has enough funds for this message to be accepted
+
+        // Ensure the user has enough funds for this message to be accepted
         if (msg.value < fee) {
             revert FeePaymentToLow();
         }
