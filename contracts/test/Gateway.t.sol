@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {console2, Test} from "forge-std/Test.sol";
 import {Strings} from "openzeppelin/utils/Strings.sol";
 import {console} from "forge-std/console.sol";
 
@@ -1035,8 +1035,7 @@ contract GatewayTest is Test {
         return result;
     }
 
-    function testSendOperatorsData() public {
-        // Create mock agent and paraID
+    function _createParaIDAndAgent() public returns (ParaID) {
         ParaID paraID = ParaID.wrap(1);
         bytes32 agentID = keccak256("1");
 
@@ -1046,7 +1045,12 @@ contract GatewayTest is Test {
             CreateChannelParams({channelID: paraID.into(), agentID: agentID, mode: OperatingMode.Normal});
 
         MockGateway(address(gateway)).createChannelPublic(abi.encode(params));
+        return paraID;
+    }
 
+    function testSendOperatorsData() public {
+        // Create mock agent and paraID
+        ParaID paraID = _createParaIDAndAgent();
         vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, FINAL_VALIDATORS_PAYLOAD);
 
@@ -1054,19 +1058,64 @@ contract GatewayTest is Test {
     }
 
     function testShouldNotSendOperatorsDataBecauseOperatorsTooLong() public {
-        // Create mock agent and paraID
-        ParaID paraID = ParaID.wrap(1);
-        bytes32 agentID = keccak256("1");
-
-        MockGateway(address(gateway)).createAgentPublic(abi.encode(CreateAgentParams({agentID: agentID})));
-
-        CreateChannelParams memory params =
-            CreateChannelParams({channelID: paraID.into(), agentID: agentID, mode: OperatingMode.Normal});
-
-        MockGateway(address(gateway)).createChannelPublic(abi.encode(params));
+        ParaID paraID = _createParaIDAndAgent();
         bytes32[] memory longOperatorsData = createLongOperatorsData();
 
         vm.expectRevert(Operators.Operators__OperatorsLengthTooLong.selector);
         IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(longOperatorsData, paraID);
+    }
+
+    function testSendOperatorsDataWith50Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_50.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        (ParaID paraID) = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
+    }
+
+    function testSendOperatorsDataWith400Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_400.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        ParaID paraID = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
+    }
+
+    function testSendOperatorsDataWith1000Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_1000.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        ParaID paraID = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
     }
 }
