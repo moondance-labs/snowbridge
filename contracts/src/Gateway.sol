@@ -474,7 +474,7 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         _submitOutbound(ticket);
     }
 
-    function sendOperatorsData(bytes32[] calldata data, ParaID destinationChain) external payable {
+    function sendOperatorsData(bytes32[] calldata data, ParaID destinationChain) external {
         Ticket memory ticket = Operators.encodeOperatorsData(data, destinationChain);
         _submitOutbound(ticket);
     }
@@ -540,23 +540,23 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         // Ensure outbound messaging is allowed
         _ensureOutboundMessagingEnabled(channel);
 
-        // Destination fee always in DOT
-        uint256 fee = _calculateFee(ticket.costs);
+        // // Destination fee always in DOT
+        // uint256 fee = _calculateFee(ticket.costs);
 
-        // Ensure the user has enough funds for this message to be accepted
-        if (msg.value < fee) {
-            revert FeePaymentToLow();
-        }
+        // // Ensure the user has enough funds for this message to be accepted
+        // if (msg.value < fee) {
+        //     revert FeePaymentToLow();
+        // }
 
         channel.outboundNonce = channel.outboundNonce + 1;
 
-        // Deposit total fee into agent's contract
-        payable(channel.agent).safeNativeTransfer(fee);
+        // // Deposit total fee into agent's contract
+        // payable(channel.agent).safeNativeTransfer(fee);
 
-        // Reimburse excess fee payment
-        if (msg.value > fee) {
-            payable(msg.sender).safeNativeTransfer(msg.value - fee);
-        }
+        // // Reimburse excess fee payment
+        // if (msg.value > fee) {
+        //     payable(msg.sender).safeNativeTransfer(msg.value - fee);
+        // }
 
         // Generate a unique ID for this message
         bytes32 messageID = keccak256(abi.encodePacked(channelID, channel.outboundNonce));

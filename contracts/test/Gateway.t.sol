@@ -1054,7 +1054,7 @@ contract GatewayTest is Test {
         vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, FINAL_VALIDATORS_PAYLOAD);
 
-        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(VALIDATORS_DATA, paraID);
+        IGateway(address(gateway)).sendOperatorsData(VALIDATORS_DATA, paraID);
     }
 
     function testShouldNotSendOperatorsDataBecauseOperatorsTooLong() public {
@@ -1062,7 +1062,7 @@ contract GatewayTest is Test {
         bytes32[] memory longOperatorsData = createLongOperatorsData();
 
         vm.expectRevert(Operators.Operators__OperatorsLengthTooLong.selector);
-        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(longOperatorsData, paraID);
+        IGateway(address(gateway)).sendOperatorsData(longOperatorsData, paraID);
     }
 
     function testSendOperatorsDataWith50Entries() public {
@@ -1080,7 +1080,7 @@ contract GatewayTest is Test {
         vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
 
-        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
     }
 
     function testSendOperatorsDataWith400Entries() public {
@@ -1098,7 +1098,7 @@ contract GatewayTest is Test {
         vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
 
-        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
     }
 
     function testSendOperatorsDataWith1000Entries() public {
@@ -1116,6 +1116,6 @@ contract GatewayTest is Test {
         vm.expectEmit(true, false, false, true);
         emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
 
-        IGateway(address(gateway)).sendOperatorsData{value: 1 ether}(accounts, paraID);
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
     }
 }
