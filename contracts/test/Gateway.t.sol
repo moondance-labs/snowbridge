@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.8.25;
 
-import {Test} from "forge-std/Test.sol";
+import {console2, Test} from "forge-std/Test.sol";
 import {Strings} from "openzeppelin/utils/Strings.sol";
 import {console} from "forge-std/console.sol";
 
@@ -19,6 +19,7 @@ import {AgentExecutor} from "../src/AgentExecutor.sol";
 import {Agent} from "../src/Agent.sol";
 import {Verification} from "../src/Verification.sol";
 import {Assets} from "../src/Assets.sol";
+import {Operators} from "../src/Operators.sol";
 import {SubstrateTypes} from "./../src/SubstrateTypes.sol";
 import {MultiAddress} from "../src/MultiAddress.sol";
 import {Channel, InboundMessage, OperatingMode, ParaID, Command, ChannelID, MultiAddress} from "../src/Types.sol";
@@ -1013,5 +1014,108 @@ contract GatewayTest is Test {
 
         bytes memory encodedParams = abi.encode(params);
         MockGateway(address(gateway)).agentExecutePublic(encodedParams);
+    }
+
+    bytes private constant FINAL_VALIDATORS_PAYLOAD =
+        hex"7015003800000cd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe228eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48";
+
+    bytes32[] private VALIDATORS_DATA = [
+        bytes32(0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d),
+        bytes32(0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22),
+        bytes32(0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48)
+    ];
+
+    function createLongOperatorsData() public view returns (bytes32[] memory) {
+        bytes32[] memory result = new bytes32[](1001);
+
+        for (uint256 i = 0; i <= 1000; i++) {
+            result[i] = VALIDATORS_DATA[i % 3];
+        }
+
+        return result;
+    }
+
+    function _createParaIDAndAgent() public returns (ParaID) {
+        ParaID paraID = ParaID.wrap(1);
+        bytes32 agentID = keccak256("1");
+
+        MockGateway(address(gateway)).createAgentPublic(abi.encode(CreateAgentParams({agentID: agentID})));
+
+        CreateChannelParams memory params =
+            CreateChannelParams({channelID: paraID.into(), agentID: agentID, mode: OperatingMode.Normal});
+
+        MockGateway(address(gateway)).createChannelPublic(abi.encode(params));
+        return paraID;
+    }
+
+    function testSendOperatorsData() public {
+        // Create mock agent and paraID
+        ParaID paraID = _createParaIDAndAgent();
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, FINAL_VALIDATORS_PAYLOAD);
+
+        IGateway(address(gateway)).sendOperatorsData(VALIDATORS_DATA, paraID);
+    }
+
+    function testShouldNotSendOperatorsDataBecauseOperatorsTooLong() public {
+        ParaID paraID = _createParaIDAndAgent();
+        bytes32[] memory longOperatorsData = createLongOperatorsData();
+
+        vm.expectRevert(Operators.Operators__OperatorsLengthTooLong.selector);
+        IGateway(address(gateway)).sendOperatorsData(longOperatorsData, paraID);
+    }
+
+    function testSendOperatorsDataWith50Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_50.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        (ParaID paraID) = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
+    }
+
+    function testSendOperatorsDataWith400Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_400.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        ParaID paraID = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
+    }
+
+    function testSendOperatorsDataWith1000Entries() public {
+        string memory root = vm.projectRoot();
+        string memory path = string.concat(root, "/test/data/test_vector_message_validator_1000.json");
+        string memory json = vm.readFile(path);
+
+        // Get payload
+        bytes memory final_payload = vm.parseJsonBytes(json, "$.payload");
+
+        // Get accounts array
+        bytes32[] memory accounts = abi.decode(vm.parseJson(json, "$.accounts"), (bytes32[]));
+        ParaID paraID = _createParaIDAndAgent();
+
+        vm.expectEmit(true, false, false, true);
+        emit IGateway.OutboundMessageAccepted(paraID.into(), 1, messageID, final_payload);
+
+        IGateway(address(gateway)).sendOperatorsData(accounts, paraID);
     }
 }

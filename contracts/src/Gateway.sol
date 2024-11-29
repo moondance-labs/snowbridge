@@ -6,6 +6,7 @@ import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
 import {Verification} from "./Verification.sol";
 
 import {Assets} from "./Assets.sol";
+import {Operators} from "./Operators.sol";
 import {AgentExecutor} from "./AgentExecutor.sol";
 import {Agent} from "./Agent.sol";
 import {
@@ -473,6 +474,11 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         _submitOutbound(ticket);
     }
 
+    function sendOperatorsData(bytes32[] calldata data, ParaID destinationChain) external {
+        Ticket memory ticket = Operators.encodeOperatorsData(data, destinationChain);
+        _submitOutbound(ticket);
+    }
+
     // @dev Get token address by tokenID
     function tokenAddressOf(bytes32 tokenID) external view returns (address) {
         return Assets.tokenAddressOf(tokenID);
@@ -528,29 +534,30 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
     // Submit an outbound message to Polkadot, after taking fees
     function _submitOutbound(Ticket memory ticket) internal {
-        ChannelID channelID = ticket.dest.into();
+        // ChannelID channelID = ticket.dest.into();
+        ChannelID channelID = PRIMARY_GOVERNANCE_CHANNEL_ID;
         Channel storage channel = _ensureChannel(channelID);
 
         // Ensure outbound messaging is allowed
         _ensureOutboundMessagingEnabled(channel);
 
-        // Destination fee always in DOT
-        uint256 fee = _calculateFee(ticket.costs);
+        // // Destination fee always in DOT
+        // uint256 fee = _calculateFee(ticket.costs);
 
-        // Ensure the user has enough funds for this message to be accepted
-        if (msg.value < fee) {
-            revert FeePaymentToLow();
-        }
+        // // Ensure the user has enough funds for this message to be accepted
+        // if (msg.value < fee) {
+        //     revert FeePaymentToLow();
+        // }
 
         channel.outboundNonce = channel.outboundNonce + 1;
 
-        // Deposit total fee into agent's contract
-        payable(channel.agent).safeNativeTransfer(fee);
+        // // Deposit total fee into agent's contract
+        // payable(channel.agent).safeNativeTransfer(fee);
 
-        // Reimburse excess fee payment
-        if (msg.value > fee) {
-            payable(msg.sender).safeNativeTransfer(msg.value - fee);
-        }
+        // // Reimburse excess fee payment
+        // if (msg.value > fee) {
+        //     payable(msg.sender).safeNativeTransfer(msg.value - fee);
+        // }
 
         // Generate a unique ID for this message
         bytes32 messageID = keccak256(abi.encodePacked(channelID, channel.outboundNonce));
