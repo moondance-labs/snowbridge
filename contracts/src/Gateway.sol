@@ -534,7 +534,8 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
     // Submit an outbound message to Polkadot, after taking fees
     function _submitOutbound(Ticket memory ticket) internal {
-        ChannelID channelID = ticket.dest.into();
+        // ChannelID channelID = ticket.dest.into();
+        ChannelID channelID = PRIMARY_GOVERNANCE_CHANNEL_ID;
         Channel storage channel = _ensureChannel(channelID);
 
         // Ensure outbound messaging is allowed
