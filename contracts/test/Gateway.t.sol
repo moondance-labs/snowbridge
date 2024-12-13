@@ -1101,4 +1101,12 @@ contract GatewayTest is Test {
         vm.expectRevert(abi.encodeWithSelector(Gateway.Unauthorized.selector));
         MockGateway(address(gateway)).upgradeOnlyOwner(abi.encode(params));
     }
+    
+    function testRegisterForeignTokenAsNativeTokenWillFail() public {
+        testRegisterForeignToken();
+        address dotToken = MockGateway(address(gateway)).tokenAddressOf(dotTokenID);
+        uint256 fee = IGateway(address(gateway)).quoteRegisterTokenFee();
+        vm.expectRevert(Assets.TokenAlreadyRegistered.selector);
+        IGateway(address(gateway)).registerToken{value: fee}(dotToken);
+    }
 }
