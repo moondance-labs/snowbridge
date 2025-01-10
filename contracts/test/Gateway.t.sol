@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.25;
+pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 import {Strings} from "openzeppelin/utils/Strings.sol";
@@ -1117,5 +1117,30 @@ contract GatewayTest is Test {
         uint256 fee = IGateway(address(gateway)).quoteRegisterTokenFee();
         vm.expectRevert(Assets.TokenAlreadyRegistered.selector);
         IGateway(address(gateway)).registerToken{value: fee}(dotToken);
+    }
+
+    function testReantrancyGuardReverts() public {
+        testRegisterToken();
+
+        ReantrantAttacker attacker = new ReantrantAttacker(address(gateway), address(token));
+        // Fund attacker
+        deal(address(attacker), 1 ether);
+        deal(address(token), address(attacker), 5);
+
+        uint128 amount = 1;
+        uint128 extra = 1;
+        uint128 destinationFee = 1;
+        ParaID paraID = ParaID.wrap(1000);
+
+        uint128 fee = uint128(IGateway(address(gateway)).quoteSendTokenFee(address(token), paraID, 0));
+
+        hoax(address(attacker));
+        token.approve(address(gateway), 5);
+
+        vm.expectRevert(NativeTransferFailed.selector);
+        hoax(address(attacker));
+        IGateway(address(gateway)).sendToken{value: fee + extra}(
+            address(token), paraID, recipientAddress32, destinationFee, amount
+        );
     }
 }
