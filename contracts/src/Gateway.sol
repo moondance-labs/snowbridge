@@ -38,7 +38,6 @@ import {
     CreateChannelParams,
     UpdateChannelParams,
     SetOperatingModeParams,
-    TransferNativeFromAgentParams,
     SetTokenTransferFeesParams,
     SetPricingParametersParams,
     RegisterForeignTokenParams,
@@ -259,10 +258,8 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
                 success = false;
             }
         } else if (message.command == Command.TransferNativeFromAgent) {
-            try Gateway(this).transferNativeFromAgent{gas: maxDispatchGas}(message.params) {}
-            catch {
-                success = false;
-            }
+            // DISABLED
+            success = true;
         } else if (message.command == Command.Upgrade) {
             try Gateway(this).upgrade{gas: maxDispatchGas}(message.params) {}
             catch {
@@ -465,16 +462,6 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         SetOperatingModeParams memory params = abi.decode(data, (SetOperatingModeParams));
         $.mode = params.mode;
         emit OperatingModeChanged(params.mode);
-    }
-
-    // @dev Transfer funds from an agent to a recipient account
-    function transferNativeFromAgent(bytes calldata data) external onlySelf {
-        TransferNativeFromAgentParams memory params = abi.decode(data, (TransferNativeFromAgentParams));
-
-        address agent = _ensureAgent(params.agentID);
-
-        _transferNativeFromAgent(agent, payable(params.recipient), params.amount);
-        emit AgentFundsWithdrawn(params.agentID, params.recipient, params.amount);
     }
 
     // @dev Set token fees of the gateway
@@ -768,12 +755,6 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
     function _invokeOnAgent(address agent, bytes memory data) internal returns (bytes memory) {
         (bool success, bytes memory returndata) = (Agent(payable(agent)).invoke(AGENT_EXECUTOR, data));
         return Call.verifyResult(success, returndata);
-    }
-
-    /// @dev Transfer ether from an agent
-    function _transferNativeFromAgent(address agent, address payable recipient, uint256 amount) internal {
-        bytes memory call = abi.encodeCall(AgentExecutor.transferEther, (recipient, amount));
-        _invokeOnAgent(agent, call);
     }
 
     /// @dev Define the dust threshold as the minimum cost to transfer ether between accounts

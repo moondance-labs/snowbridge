@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License
 // along with Tanssi.  If not, see <http://www.gnu.org/licenses/>
-pragma solidity 0.8.25;
+pragma solidity 0.8.28;
 
 import {console2} from "forge-std/console2.sol";
 import {BeefyClient} from "./BeefyClient.sol";

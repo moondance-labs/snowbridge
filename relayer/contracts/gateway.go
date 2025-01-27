@@ -68,7 +68,7 @@ type VerificationProof struct {
 
 // GatewayMetaData contains all meta data concerning the Gateway contract.
 var GatewayMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"function\",\"name\":\"agentOf\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"channelNoncesOf\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"channelOperatingModeOf\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumOperatingMode\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"depositEther\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"implementation\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isTokenRegistered\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operatingMode\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumOperatingMode\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pricingParameters\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"UD60x18\"},{\"name\":\"\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"queryForeignTokenID\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"quoteRegisterTokenFee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"quoteSendTokenFee\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"internalType\":\"ParaID\"},{\"name\":\"destinationFee\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"registerToken\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"sendToken\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"internalType\":\"ParaID\"},{\"name\":\"destinationAddress\",\"type\":\"tuple\",\"internalType\":\"structMultiAddress\",\"components\":[{\"name\":\"kind\",\"type\":\"uint8\",\"internalType\":\"enumKind\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"destinationFee\",\"type\":\"uint128\",\"internalType\":\"uint128\"},{\"name\":\"amount\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"submitV1\",\"inputs\":[{\"name\":\"message\",\"type\":\"tuple\",\"internalType\":\"structInboundMessage\",\"components\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"command\",\"type\":\"uint8\",\"internalType\":\"enumCommand\"},{\"name\":\"params\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"maxDispatchGas\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"maxFeePerGas\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"reward\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"id\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"name\":\"leafProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"headerProof\",\"type\":\"tuple\",\"internalType\":\"structVerification.Proof\",\"components\":[{\"name\":\"leafPartial\",\"type\":\"tuple\",\"internalType\":\"structVerification.MMRLeafPartial\",\"components\":[{\"name\":\"version\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"parentNumber\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"parentHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"nextAuthoritySetID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"nextAuthoritySetLen\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"nextAuthoritySetRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"name\":\"leafProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"parachainHeadsRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"leafProofOrder\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"AgentCreated\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"agent\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"AgentFundsWithdrawn\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ChannelCreated\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ChannelUpdated\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Deposited\",\"inputs\":[{\"name\":\"sender\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ForeignTokenRegistered\",\"inputs\":[{\"name\":\"tokenID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"token\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"InboundMessageDispatched\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"messageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"success\",\"type\":\"bool\",\"indexed\":false,\"internalType\":\"bool\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatingModeChanged\",\"inputs\":[{\"name\":\"mode\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"enumOperatingMode\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OutboundMessageAccepted\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"messageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"payload\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"PricingParametersChanged\",\"inputs\":[],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenRegistrationSent\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenSent\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"indexed\":true,\"internalType\":\"ParaID\"},{\"name\":\"destinationAddress\",\"type\":\"tuple\",\"indexed\":false,\"internalType\":\"structMultiAddress\",\"components\":[{\"name\":\"kind\",\"type\":\"uint8\",\"internalType\":\"enumKind\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"amount\",\"type\":\"uint128\",\"indexed\":false,\"internalType\":\"uint128\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenTransferFeesChanged\",\"inputs\":[],\"anonymous\":false}]",
+	ABI: "[{\"type\":\"function\",\"name\":\"agentOf\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"channelNoncesOf\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"channelOperatingModeOf\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumOperatingMode\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"depositEther\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"implementation\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"isTokenRegistered\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operatingMode\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint8\",\"internalType\":\"enumOperatingMode\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pricingParameters\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"UD60x18\"},{\"name\":\"\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"queryForeignTokenID\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"quoteRegisterTokenFee\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"quoteSendTokenFee\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"internalType\":\"ParaID\"},{\"name\":\"destinationFee\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"registerToken\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"sendToken\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"internalType\":\"ParaID\"},{\"name\":\"destinationAddress\",\"type\":\"tuple\",\"internalType\":\"structMultiAddress\",\"components\":[{\"name\":\"kind\",\"type\":\"uint8\",\"internalType\":\"enumKind\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"destinationFee\",\"type\":\"uint128\",\"internalType\":\"uint128\"},{\"name\":\"amount\",\"type\":\"uint128\",\"internalType\":\"uint128\"}],\"outputs\":[],\"stateMutability\":\"payable\"},{\"type\":\"function\",\"name\":\"submitV1\",\"inputs\":[{\"name\":\"message\",\"type\":\"tuple\",\"internalType\":\"structInboundMessage\",\"components\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"command\",\"type\":\"uint8\",\"internalType\":\"enumCommand\"},{\"name\":\"params\",\"type\":\"bytes\",\"internalType\":\"bytes\"},{\"name\":\"maxDispatchGas\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"maxFeePerGas\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"reward\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"id\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"name\":\"leafProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"headerProof\",\"type\":\"tuple\",\"internalType\":\"structVerification.Proof\",\"components\":[{\"name\":\"header\",\"type\":\"tuple\",\"internalType\":\"structVerification.ParachainHeader\",\"components\":[{\"name\":\"parentHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"number\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"stateRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"extrinsicsRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"digestItems\",\"type\":\"tuple[]\",\"internalType\":\"structVerification.DigestItem[]\",\"components\":[{\"name\":\"kind\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"consensusEngineID\",\"type\":\"bytes4\",\"internalType\":\"bytes4\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]}]},{\"name\":\"headProof\",\"type\":\"tuple\",\"internalType\":\"structVerification.HeadProof\",\"components\":[{\"name\":\"pos\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"width\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"proof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"}]},{\"name\":\"leafPartial\",\"type\":\"tuple\",\"internalType\":\"structVerification.MMRLeafPartial\",\"components\":[{\"name\":\"version\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"parentNumber\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"parentHash\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"nextAuthoritySetID\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"nextAuthoritySetLen\",\"type\":\"uint32\",\"internalType\":\"uint32\"},{\"name\":\"nextAuthoritySetRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"name\":\"leafProof\",\"type\":\"bytes32[]\",\"internalType\":\"bytes32[]\"},{\"name\":\"leafProofOrder\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"version\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint64\",\"internalType\":\"uint64\"}],\"stateMutability\":\"view\"},{\"type\":\"event\",\"name\":\"AgentCreated\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"indexed\":false,\"internalType\":\"bytes32\"},{\"name\":\"agent\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"AgentFundsWithdrawn\",\"inputs\":[{\"name\":\"agentID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"recipient\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ChannelCreated\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ChannelUpdated\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"EtherDeposited\",\"inputs\":[{\"name\":\"who\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"ForeignTokenRegistered\",\"inputs\":[{\"name\":\"tokenID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"token\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"InboundMessageDispatched\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"messageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"success\",\"type\":\"bool\",\"indexed\":false,\"internalType\":\"bool\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatingModeChanged\",\"inputs\":[{\"name\":\"mode\",\"type\":\"uint8\",\"indexed\":false,\"internalType\":\"enumOperatingMode\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OutboundMessageAccepted\",\"inputs\":[{\"name\":\"channelID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"ChannelID\"},{\"name\":\"nonce\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"},{\"name\":\"messageID\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"payload\",\"type\":\"bytes\",\"indexed\":false,\"internalType\":\"bytes\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"PricingParametersChanged\",\"inputs\":[],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenRegistrationSent\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenSent\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"destinationChain\",\"type\":\"uint32\",\"indexed\":true,\"internalType\":\"ParaID\"},{\"name\":\"destinationAddress\",\"type\":\"tuple\",\"indexed\":false,\"internalType\":\"structMultiAddress\",\"components\":[{\"name\":\"kind\",\"type\":\"uint8\",\"internalType\":\"enumKind\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}]},{\"name\":\"amount\",\"type\":\"uint128\",\"indexed\":false,\"internalType\":\"uint128\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"TokenTransferFeesChanged\",\"inputs\":[],\"anonymous\":false}]",
 }
 
 // GatewayABI is the input ABI used to generate the binding from.
@@ -527,6 +527,37 @@ func (_Gateway *GatewaySession) QuoteSendTokenFee(token common.Address, destinat
 // Solidity: function quoteSendTokenFee(address token, uint32 destinationChain, uint128 destinationFee) view returns(uint256)
 func (_Gateway *GatewayCallerSession) QuoteSendTokenFee(token common.Address, destinationChain uint32, destinationFee *big.Int) (*big.Int, error) {
 	return _Gateway.Contract.QuoteSendTokenFee(&_Gateway.CallOpts, token, destinationChain, destinationFee)
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(uint64)
+func (_Gateway *GatewayCaller) Version(opts *bind.CallOpts) (uint64, error) {
+	var out []interface{}
+	err := _Gateway.contract.Call(opts, &out, "version")
+
+	if err != nil {
+		return *new(uint64), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint64)).(*uint64)
+
+	return out0, err
+
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(uint64)
+func (_Gateway *GatewaySession) Version() (uint64, error) {
+	return _Gateway.Contract.Version(&_Gateway.CallOpts)
+}
+
+// Version is a free data retrieval call binding the contract method 0x54fd4d50.
+//
+// Solidity: function version() view returns(uint64)
+func (_Gateway *GatewayCallerSession) Version() (uint64, error) {
+	return _Gateway.Contract.Version(&_Gateway.CallOpts)
 }
 
 // DepositEther is a paid mutator transaction binding the contract method 0x98ea5fca.
@@ -1190,9 +1221,9 @@ func (_Gateway *GatewayFilterer) ParseChannelUpdated(log types.Log) (*GatewayCha
 	return event, nil
 }
 
-// GatewayDepositedIterator is returned from FilterDeposited and is used to iterate over the raw logs and unpacked data for Deposited events raised by the Gateway contract.
-type GatewayDepositedIterator struct {
-	Event *GatewayDeposited // Event containing the contract specifics and raw log
+// GatewayEtherDepositedIterator is returned from FilterEtherDeposited and is used to iterate over the raw logs and unpacked data for EtherDeposited events raised by the Gateway contract.
+type GatewayEtherDepositedIterator struct {
+	Event *GatewayEtherDeposited // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1206,7 +1237,7 @@ type GatewayDepositedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *GatewayDepositedIterator) Next() bool {
+func (it *GatewayEtherDepositedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1215,7 +1246,7 @@ func (it *GatewayDepositedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(GatewayDeposited)
+			it.Event = new(GatewayEtherDeposited)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1230,7 +1261,7 @@ func (it *GatewayDepositedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(GatewayDeposited)
+		it.Event = new(GatewayEtherDeposited)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1246,42 +1277,42 @@ func (it *GatewayDepositedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *GatewayDepositedIterator) Error() error {
+func (it *GatewayEtherDepositedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *GatewayDepositedIterator) Close() error {
+func (it *GatewayEtherDepositedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// GatewayDeposited represents a Deposited event raised by the Gateway contract.
-type GatewayDeposited struct {
-	Sender common.Address
+// GatewayEtherDeposited represents a EtherDeposited event raised by the Gateway contract.
+type GatewayEtherDeposited struct {
+	Who    common.Address
 	Amount *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
 }
 
-// FilterDeposited is a free log retrieval operation binding the contract event 0x2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c4.
+// FilterEtherDeposited is a free log retrieval operation binding the contract event 0x939e51ac2fd009b158d6344f7e68a83d8d18d9b0cc88cf514aac6aaa9cad2a18.
 //
-// Solidity: event Deposited(address sender, uint256 amount)
-func (_Gateway *GatewayFilterer) FilterDeposited(opts *bind.FilterOpts) (*GatewayDepositedIterator, error) {
+// Solidity: event EtherDeposited(address who, uint256 amount)
+func (_Gateway *GatewayFilterer) FilterEtherDeposited(opts *bind.FilterOpts) (*GatewayEtherDepositedIterator, error) {
 
-	logs, sub, err := _Gateway.contract.FilterLogs(opts, "Deposited")
+	logs, sub, err := _Gateway.contract.FilterLogs(opts, "EtherDeposited")
 	if err != nil {
 		return nil, err
 	}
-	return &GatewayDepositedIterator{contract: _Gateway.contract, event: "Deposited", logs: logs, sub: sub}, nil
+	return &GatewayEtherDepositedIterator{contract: _Gateway.contract, event: "EtherDeposited", logs: logs, sub: sub}, nil
 }
 
-// WatchDeposited is a free log subscription operation binding the contract event 0x2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c4.
+// WatchEtherDeposited is a free log subscription operation binding the contract event 0x939e51ac2fd009b158d6344f7e68a83d8d18d9b0cc88cf514aac6aaa9cad2a18.
 //
-// Solidity: event Deposited(address sender, uint256 amount)
-func (_Gateway *GatewayFilterer) WatchDeposited(opts *bind.WatchOpts, sink chan<- *GatewayDeposited) (event.Subscription, error) {
+// Solidity: event EtherDeposited(address who, uint256 amount)
+func (_Gateway *GatewayFilterer) WatchEtherDeposited(opts *bind.WatchOpts, sink chan<- *GatewayEtherDeposited) (event.Subscription, error) {
 
-	logs, sub, err := _Gateway.contract.WatchLogs(opts, "Deposited")
+	logs, sub, err := _Gateway.contract.WatchLogs(opts, "EtherDeposited")
 	if err != nil {
 		return nil, err
 	}
@@ -1291,8 +1322,8 @@ func (_Gateway *GatewayFilterer) WatchDeposited(opts *bind.WatchOpts, sink chan<
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(GatewayDeposited)
-				if err := _Gateway.contract.UnpackLog(event, "Deposited", log); err != nil {
+				event := new(GatewayEtherDeposited)
+				if err := _Gateway.contract.UnpackLog(event, "EtherDeposited", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1313,12 +1344,12 @@ func (_Gateway *GatewayFilterer) WatchDeposited(opts *bind.WatchOpts, sink chan<
 	}), nil
 }
 
-// ParseDeposited is a log parse operation binding the contract event 0x2da466a7b24304f47e87fa2e1e5a81b9831ce54fec19055ce277ca2f39ba42c4.
+// ParseEtherDeposited is a log parse operation binding the contract event 0x939e51ac2fd009b158d6344f7e68a83d8d18d9b0cc88cf514aac6aaa9cad2a18.
 //
-// Solidity: event Deposited(address sender, uint256 amount)
-func (_Gateway *GatewayFilterer) ParseDeposited(log types.Log) (*GatewayDeposited, error) {
-	event := new(GatewayDeposited)
-	if err := _Gateway.contract.UnpackLog(event, "Deposited", log); err != nil {
+// Solidity: event EtherDeposited(address who, uint256 amount)
+func (_Gateway *GatewayFilterer) ParseEtherDeposited(log types.Log) (*GatewayEtherDeposited, error) {
+	event := new(GatewayEtherDeposited)
+	if err := _Gateway.contract.UnpackLog(event, "EtherDeposited", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
