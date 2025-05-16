@@ -2,10 +2,11 @@
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
 pragma solidity 0.8.25;
 
+import {console2} from "forge-std/console2.sol";
 import {WETH9} from "canonical-weth/WETH9.sol";
 import {Script} from "forge-std/Script.sol";
 import {BeefyClient} from "../src/BeefyClient.sol";
-import {console2} from "forge-std/console2.sol";
+
 import {IGateway} from "../src/interfaces/IGateway.sol";
 import {GatewayProxy} from "../src/GatewayProxy.sol";
 import {Gateway} from "../src/Gateway.sol";
@@ -28,29 +29,7 @@ contract DeployLocal is Script {
         address deployer = vm.rememberKey(privateKey);
         vm.startBroadcast(deployer);
 
-        // BeefyClient
-        // Seems `fs_permissions` explicitly configured as absolute path does not work and only allowed from project root
-        string memory root = vm.projectRoot();
-        string memory beefyCheckpointFile = string.concat(root, "/beefy-state.json");
-        string memory beefyCheckpointRaw = vm.readFile(beefyCheckpointFile);
-        uint64 startBlock = uint64(beefyCheckpointRaw.readUint(".startBlock"));
-
-        BeefyClient.ValidatorSet memory current = BeefyClient.ValidatorSet(
-            uint128(beefyCheckpointRaw.readUint(".current.id")),
-            uint128(beefyCheckpointRaw.readUint(".current.length")),
-            beefyCheckpointRaw.readBytes32(".current.root")
-        );
-        BeefyClient.ValidatorSet memory next = BeefyClient.ValidatorSet(
-            uint128(beefyCheckpointRaw.readUint(".next.id")),
-            uint128(beefyCheckpointRaw.readUint(".next.length")),
-            beefyCheckpointRaw.readBytes32(".next.root")
-        );
-
-        uint256 randaoCommitDelay = vm.envUint("RANDAO_COMMIT_DELAY");
-        uint256 randaoCommitExpiration = vm.envUint("RANDAO_COMMIT_EXP");
-        uint256 minimumSignatures = vm.envUint("MINIMUM_REQUIRED_SIGNATURES");
-        BeefyClient beefyClient =
-            new BeefyClient(randaoCommitDelay, randaoCommitExpiration, minimumSignatures, startBlock, current, next);
+        address beefyClient = vm.envAddress("BEEFY_CLIENT_CONTRACT_ADDRESS");
 
         ParaID bridgeHubParaID = ParaID.wrap(uint32(vm.envUint("BRIDGE_HUB_PARAID")));
         bytes32 bridgeHubAgentID = vm.envBytes32("BRIDGE_HUB_AGENT_ID");
@@ -92,10 +71,8 @@ contract DeployLocal is Script {
         });
 
         GatewayProxy gateway = new GatewayProxy(address(gatewayLogic), abi.encode(config));
-
-        console2.log("BeefyClient: ", address(beefyClient));
-        console2.log("Gateway: ", address(gateway));
-        console2.log("Gateway Implementation: ", address(gatewayLogic));
+        console2.log("Gateway impl: ", address(gatewayLogic));
+        console2.log("gateway address: ", address(gateway));
         vm.stopBroadcast();
     }
 }

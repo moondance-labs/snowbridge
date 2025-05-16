@@ -8,10 +8,12 @@ import {console} from "forge-std/console.sol";
 import {BeefyClient} from "../src/BeefyClient.sol";
 
 import {IGateway} from "../src/interfaces/IGateway.sol";
+import {IOGateway} from "../src/interfaces/IOGateway.sol";
 import {IInitializable} from "../src/interfaces/IInitializable.sol";
 import {IUpgradable} from "../src/interfaces/IUpgradable.sol";
 import {Gateway} from "../src/Gateway.sol";
 import {MockGateway} from "./mocks/MockGateway.sol";
+
 import {MockGatewayV2} from "./mocks/MockGatewayV2.sol";
 import {GatewayProxy} from "../src/GatewayProxy.sol";
 
@@ -162,14 +164,6 @@ contract GatewayTest is Test {
 
     function makeMockProof() public pure returns (Verification.Proof memory) {
         return Verification.Proof({
-            header: Verification.ParachainHeader({
-                parentHash: bytes32(0),
-                number: 0,
-                stateRoot: bytes32(0),
-                extrinsicsRoot: bytes32(0),
-                digestItems: new Verification.DigestItem[](0)
-            }),
-            headProof: Verification.HeadProof({pos: 0, width: 0, proof: new bytes32[](0)}),
             leafPartial: Verification.MMRLeafPartial({
                 version: 0,
                 parentNumber: 0,
@@ -179,7 +173,8 @@ contract GatewayTest is Test {
                 nextAuthoritySetRoot: 0
             }),
             leafProof: new bytes32[](0),
-            leafProofOrder: 0
+            leafProofOrder: 0,
+            parachainHeadsRoot: bytes32(0)
         });
     }
 
