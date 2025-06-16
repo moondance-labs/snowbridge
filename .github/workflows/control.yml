@@ -10,6 +10,10 @@ on:
     paths:
       - "control/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   control:
     runs-on: ubuntu-latest
