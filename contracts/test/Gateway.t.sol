@@ -1009,4 +1009,40 @@ contract GatewayTest is Test {
         bytes memory encodedParams = abi.encode(params);
         MockGateway(address(gateway)).agentExecutePublic(encodedParams);
     }
+
+    function testUpgradeOnlyOwner() public {
+        // Upgrade to this new logic contract
+        MockGatewayV2 newLogic = new MockGatewayV2();
+
+        UpgradeParams memory params = UpgradeParams({
+            impl: address(newLogic),
+            implCodeHash: address(newLogic).codehash,
+            initParams: abi.encode(42)
+        });
+
+        // Expect the gateway to emit `Upgraded`
+        vm.expectEmit(true, false, false, false);
+        emit IUpgradable.Upgraded(address(newLogic));
+
+        MockGateway(address(gateway)).upgradeOnlyOwner(abi.encode(params));
+
+        // Verify that the MockGatewayV2.initialize was called
+        assertEq(MockGatewayV2(address(gateway)).getValue(), 42);
+    }
+
+    function testUpgradeNotOnlyOwner() public {
+        // Upgrade to this new logic contract
+        MockGatewayV2 newLogic = new MockGatewayV2();
+
+        UpgradeParams memory params = UpgradeParams({
+            impl: address(newLogic),
+            implCodeHash: address(newLogic).codehash,
+            initParams: abi.encode(42)
+        });
+
+        address notOwner = makeAddr("notOwner");
+        vm.prank(notOwner);
+        vm.expectRevert(abi.encodeWithSelector(Gateway.Unauthorized.selector));
+        MockGateway(address(gateway)).upgradeOnlyOwner(abi.encode(params));
+    }
 }
