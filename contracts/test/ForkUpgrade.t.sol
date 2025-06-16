@@ -18,7 +18,8 @@ contract ForkUpgradeTest is Test {
     bytes32 private constant BridgeHubAgent = 0x03170a2e7597b7b7e3d84c05391d139a62b157e78786d8c082f29dcf4c111314;
 
     function setUp() public {
-        vm.createSelectFork("https://rpc.tenderly.co/fork/b77e07b8-ad6d-4e83-b5be-30a2001964aa", 20645700);
+        string memory rpc = vm.envString("RPC_URL");
+        vm.createSelectFork(rpc, 20645700);
         vm.allowCheatcodes(GatewayProxy);
         vm.startPrank(GatewayProxy);
         forkUpgrade();
