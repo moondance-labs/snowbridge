@@ -11,7 +11,7 @@ on:
 
 jobs:
   smoketests:
-    runs-on: snowbridge-runner
+    runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: 0
       RUST_BACKTRACE: 1
