@@ -3,7 +3,7 @@ name: Check Contracts Clients
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "tanssi-relay-overridden-contracts(2)" ]
   pull_request:
     branches: [ "main" ]
 
