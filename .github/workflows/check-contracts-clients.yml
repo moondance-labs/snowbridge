@@ -48,4 +48,4 @@ jobs:
         jq .abi "./out/IGateway.sol/IGateway.json" | abigen --abi - --type Gateway --pkg contracts --out ./../relayer/contracts/gateway.go
 
     - name: Check if go contract bindings are up-to-date
-      run: git diff --exit-code ./relays/contracts || (echo "The contract bindings are not up-to-date against contracts." && exit 1)
+      run: git diff --exit-code ./relayer/contracts || (echo "The contract bindings are not up-to-date against contracts." && exit 1)
