@@ -3,8 +3,8 @@
 pragma solidity 0.8.25;
 
 import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {Verification} from "./Verification.sol";
-
 import {Assets} from "./Assets.sol";
 import {AgentExecutor} from "./AgentExecutor.sol";
 import {Agent} from "./Agent.sol";
@@ -17,11 +17,11 @@ import {
     Command,
     MultiAddress,
     Ticket,
+    TokenInfo,
     Costs,
     AgentExecuteCommand
 } from "./Types.sol";
 import {Upgrade} from "./Upgrade.sol";
-import {IGateway} from "./interfaces/IGateway.sol";
 import {IInitializable} from "./interfaces/IInitializable.sol";
 import {IUpgradable} from "./interfaces/IUpgradable.sol";
 import {ERC1967} from "./utils/ERC1967.sol";
@@ -50,10 +50,16 @@ import {CoreStorage} from "./storage/CoreStorage.sol";
 import {PricingStorage} from "./storage/PricingStorage.sol";
 import {AssetsStorage} from "./storage/AssetsStorage.sol";
 import {OperatorStorage} from "./storage/OperatorStorage.sol";
+import {GatewayCoreStorage} from "./storage/GatewayCoreStorage.sol";
 
 import {UD60x18, ud60x18, convert} from "prb/math/src/UD60x18.sol";
 
-contract Gateway is IGateway, IInitializable, IUpgradable {
+import {Operators} from "./Operators.sol";
+
+import {IOGateway} from "./interfaces/IOGateway.sol";
+import {IMiddlewareBasic} from "./interfaces/IMiddlewareBasic.sol";
+
+contract Gateway is IOGateway, IInitializable, IUpgradable {
     using Address for address;
     using SafeNativeTransfer for address payable;
 
@@ -88,7 +94,7 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
     error InvalidProof();
     error InvalidNonce();
     error NotEnoughGas();
-    error FeePaymentToLow();
+    error InsufficientEther();
     error Unauthorized();
     error Disabled();
     error AgentAlreadyCreated();
@@ -99,10 +105,49 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
     error InvalidAgentExecutionPayload();
     error InvalidConstructorParams();
     error TokenNotRegistered();
+    error CantSetMiddlewareToZeroAddress();
+    error CantSetMiddlewareToSameAddress();
+    error MiddlewareNotSet();
+    error EUnableToProcessRewardsB(
+        uint256 epoch,
+        uint256 eraIndex,
+        address tokenAddress,
+        uint256 totalPointsToken,
+        uint256 totalTokensInflated,
+        bytes32 rewardsRoot,
+        bytes errorBytes
+    );
+    error EUnableToProcessRewardsS(
+        uint256 epoch,
+        uint256 eraIndex,
+        address tokenAddress,
+        uint256 totalPointsToken,
+        uint256 totalTokensInflated,
+        bytes32 rewardsRoot,
+        string errorString
+    );
 
     // Message handlers can only be dispatched by the gateway itself
     modifier onlySelf() {
         if (msg.sender != address(this)) {
+            revert Unauthorized();
+        }
+        _;
+    }
+
+    // Can only be called by the owner of the contract.
+    modifier onlyOwner() {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        if (msg.sender != layout.owner) {
+            revert Unauthorized();
+        }
+        _;
+    }
+
+    // Can only be called by the middleware
+    modifier onlyMiddleware() {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        if (msg.sender != layout.middleware) {
             revert Unauthorized();
         }
         _;
@@ -231,6 +276,28 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
             catch {
                 success = false;
             }
+        } else if (message.command == Command.ReportSlashes) {
+            // We need to put all this inside a generic try-catch, since we dont want to revert decoding nor anything
+            try Gateway(this).reportSlashes{gas: maxDispatchGas}(message.params) {}
+            catch Error(string memory err) {
+                emit UnableToProcessSlashMessageS(err);
+                success = false;
+            } catch (bytes memory err) {
+                emit UnableToProcessSlashMessageB(err);
+                success = false;
+            }
+        } else if (message.command == Command.ReportRewards) {
+            try Gateway(this).sendRewards{gas: maxDispatchGas}(message.params) {}
+            catch Error(string memory err) {
+                emit UnableToProcessRewardsMessageS(err);
+                success = false;
+            } catch (bytes memory err) {
+                emit UnableToProcessRewardsMessageB(err);
+                success = false;
+            }
+        } else {
+            success = false;
+            emit NotImplementedCommand(message.command);
         }
 
         // Calculate a gas refund, capped to protect against huge spikes in `tx.gasprice`
@@ -240,14 +307,14 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
         // Add the reward to the refund amount. If the sum is more than the funds available
         // in the channel agent, then reduce the total amount
-        uint256 amount = Math.min(refund + message.reward, address(channel.agent).balance);
+        uint256 amount = Math.min(refund + message.reward, address(this).balance);
 
-        // Do the payment if there funds available in the agent
+        // Do the payment if there funds available in the gateway
         if (amount > _dustThreshold()) {
-            _transferNativeFromAgent(channel.agent, payable(msg.sender), amount);
+            payable(msg.sender).safeNativeTransfer(amount);
         }
 
-        emit IGateway.InboundMessageDispatched(message.channelID, message.nonce, message.id, success);
+        emit InboundMessageDispatched(message.channelID, message.nonce, message.id, success);
     }
 
     /**
@@ -278,6 +345,13 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
     function implementation() public view returns (address) {
         return ERC1967.load();
+    }
+
+    /**
+     * Fee management
+     */
+    function depositEther() external payable {
+        emit Deposited(msg.sender, msg.value);
     }
 
     /**
@@ -357,6 +431,11 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         emit ChannelUpdated(params.channelID);
     }
 
+    /// Performs upgrade through the owner
+    function upgradeOnlyOwner(bytes calldata data) external onlyOwner {
+        Gateway(this).upgrade(data);
+    }
+
     /// @dev Perform an upgrade of the gateway
     function upgrade(bytes calldata data) external onlySelf {
         UpgradeParams memory params = abi.decode(data, (UpgradeParams));
@@ -423,6 +502,69 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         Assets.transferNativeToken(AGENT_EXECUTOR, agent, params.token, params.recipient, params.amount);
     }
 
+    // @dev Mint foreign token from polkadot
+    function reportSlashes(bytes calldata data) external onlySelf {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        address middlewareAddress = layout.middleware;
+        // Dont process message if we dont have a middleware set
+        if (middlewareAddress == address(0)) {
+            revert MiddlewareNotSet();
+        }
+
+        // Decode
+        (IOGateway.SlashParams memory slashes) = abi.decode(data, (IOGateway.SlashParams));
+        IMiddlewareBasic middleware = IMiddlewareBasic(middlewareAddress);
+
+        // At most it will be 10, defined by
+        // https://github.com/moondance-labs/tanssi/blob/88e59e6e5afb198947690487f286b9ad7cd4cde6/chains/orchestrator-relays/runtime/dancelight/src/lib.rs#L1446
+        for (uint256 i = 0; i < slashes.slashes.length; ++i) {
+            Slash memory slash = slashes.slashes[i];
+            //TODO maxDispatchGas should be probably be defined for all slashes, not only for one
+            try middleware.slash(uint48(slash.epoch), slash.operatorKey, slash.slashFraction) {}
+            catch Error(string memory err) {
+                emit UnableToProcessIndividualSlashS(slash.operatorKey, slash.slashFraction, slash.epoch, err);
+                continue;
+            } catch (bytes memory err) {
+                emit UnableToProcessIndividualSlashB(slash.operatorKey, slash.slashFraction, slash.epoch, err);
+                continue;
+            }
+        }
+    }
+
+    function sendRewards(bytes calldata data) external onlySelf {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        address middlewareAddress = layout.middleware;
+        // Dont process message if we dont have a middleware set
+        if (middlewareAddress == address(0)) {
+            revert MiddlewareNotSet();
+        }
+
+        (
+            uint256 epoch,
+            uint256 eraIndex,
+            uint256 totalPointsToken,
+            uint256 totalTokensInflated,
+            bytes32 rewardsRoot,
+            bytes32 foreignTokenId
+        ) = abi.decode(data, (uint256, uint256, uint256, uint256, bytes32, bytes32));
+
+        Assets.mintForeignToken(foreignTokenId, middlewareAddress, totalTokensInflated);
+
+        address tokenAddress = Assets.tokenAddressOf(foreignTokenId);
+
+        try IMiddlewareBasic(middlewareAddress).distributeRewards(
+            epoch, eraIndex, totalPointsToken, totalTokensInflated, rewardsRoot, tokenAddress
+        ) {} catch Error(string memory err) {
+            revert EUnableToProcessRewardsS(
+                epoch, eraIndex, tokenAddress, totalPointsToken, totalTokensInflated, rewardsRoot, err
+            );
+        } catch (bytes memory err) {
+            revert EUnableToProcessRewardsB(
+                epoch, eraIndex, tokenAddress, totalPointsToken, totalTokensInflated, rewardsRoot, err
+            );
+        }
+    }
+
     function isTokenRegistered(address token) external view returns (bool) {
         return Assets.isTokenRegistered(token);
     }
@@ -468,6 +610,11 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
     // @dev Get token address by tokenID
     function tokenAddressOf(bytes32 tokenID) external view returns (address) {
         return Assets.tokenAddressOf(tokenID);
+    }
+
+    function sendOperatorsData(bytes32[] calldata data, uint48 epoch) external onlyMiddleware {
+        Ticket memory ticket = Operators.encodeOperatorsData(data, epoch);
+        _submitOutboundToChannel(PRIMARY_GOVERNANCE_CHANNEL_ID, ticket.payload);
     }
 
     /**
@@ -529,25 +676,50 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         // Destination fee always in DOT
         uint256 fee = _calculateFee(ticket.costs);
 
-        // Ensure the user has enough funds for this message to be accepted
-        if (msg.value < fee) {
-            revert FeePaymentToLow();
+        // Ensure the user has provided enough ether for this message to be accepted.
+        // This includes:
+        // 1. The bridging fee, which is collected in this gateway contract
+        // 2. The ether value being bridged over to Polkadot, which is locked into the AssetHub
+        //    agent contract.
+        uint256 totalEther = fee + ticket.value;
+        if (msg.value < totalEther) {
+            revert InsufficientEther();
+        }
+        if (ticket.value > 0) {
+            payable(AssetsStorage.layout().assetHubAgent).safeNativeTransfer(ticket.value);
         }
 
         channel.outboundNonce = channel.outboundNonce + 1;
 
-        // Deposit total fee into agent's contract
-        payable(channel.agent).safeNativeTransfer(fee);
-
+        // The fee is already collected into the gateway contract
         // Reimburse excess fee payment
-        if (msg.value > fee) {
-            payable(msg.sender).safeNativeTransfer(msg.value - fee);
+        uint256 excessFee = msg.value - totalEther;
+        if (excessFee > _dustThreshold()) {
+            payable(msg.sender).safeNativeTransfer(excessFee);
         }
 
         // Generate a unique ID for this message
         bytes32 messageID = keccak256(abi.encodePacked(channelID, channel.outboundNonce));
 
-        emit IGateway.OutboundMessageAccepted(channelID, channel.outboundNonce, messageID, ticket.payload);
+        emit OutboundMessageAccepted(channelID, channel.outboundNonce, messageID, ticket.payload);
+    }
+
+    // Submit an outbound message to a specific channel.
+    // Doesn't handle fees.
+    function _submitOutboundToChannel(ChannelID channelID, bytes memory payload) internal {
+        Channel storage channel = _ensureChannel(channelID);
+
+        // Ensure outbound messaging is allowed
+        _ensureOutboundMessagingEnabled(channel);
+
+        // Increase channel nonce
+        channel.outboundNonce = channel.outboundNonce + 1;
+
+        // Generate a unique ID for this message
+        bytes32 messageID = keccak256(abi.encodePacked(channelID, channel.outboundNonce));
+
+        // Emit event for bridge
+        emit OutboundMessageAccepted(channelID, channel.outboundNonce, messageID, payload);
     }
 
     /// @dev Outbound message can be disabled globally or on a per-channel basis.
@@ -583,13 +755,13 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
     /// @dev Transfer ether from an agent
     function _transferNativeFromAgent(address agent, address payable recipient, uint256 amount) internal {
-        bytes memory call = abi.encodeCall(AgentExecutor.transferNative, (recipient, amount));
+        bytes memory call = abi.encodeCall(AgentExecutor.transferEther, (recipient, amount));
         _invokeOnAgent(agent, call);
     }
 
     /// @dev Define the dust threshold as the minimum cost to transfer ether between accounts
     function _dustThreshold() internal view returns (uint256) {
-        return 21000 * tx.gasprice;
+        return 21_000 * tx.gasprice;
     }
 
     /**
@@ -652,6 +824,8 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
 
         Config memory config = abi.decode(data, (Config));
 
+        _transferOwnership(msg.sender);
+
         core.mode = config.mode;
 
         // Initialize agent for BridgeHub
@@ -691,9 +865,47 @@ contract Gateway is IGateway, IInitializable, IUpgradable {
         assets.assetHubCreateAssetFee = config.assetHubCreateAssetFee;
         assets.assetHubReserveTransferFee = config.assetHubReserveTransferFee;
 
+        // Register native Ether
+        TokenInfo storage etherTokenInfo = assets.tokenRegistry[address(0)];
+        etherTokenInfo.isRegistered = true;
+
         // Initialize operator storage
         OperatorStorage.Layout storage operatorStorage = OperatorStorage.layout();
         operatorStorage.operator = config.rescueOperator;
     }
-}
 
+    function _transferOwnership(address newOwner) internal {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+
+        address oldOwner = layout.owner;
+        layout.owner = newOwner;
+
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    /// Changes the middleware address.
+    function setMiddleware(address middleware) external onlyOwner {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        address oldMiddleware = layout.middleware;
+
+        if (middleware == address(0)) {
+            revert CantSetMiddlewareToZeroAddress();
+        }
+
+        if (middleware == oldMiddleware) {
+            revert CantSetMiddlewareToSameAddress();
+        }
+
+        layout.middleware = middleware;
+        emit MiddlewareChanged(oldMiddleware, middleware);
+    }
+
+    function s_middleware() external view returns (address) {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        return layout.middleware;
+    }
+}

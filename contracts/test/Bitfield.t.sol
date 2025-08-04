@@ -20,7 +20,7 @@ contract BitfieldTest is Test {
         uint256[] memory bitSetArray = json.readUintArray(".participants");
 
         uint256[] memory initialBitField = bw.createBitfield(bitSetArray, setSize);
-        uint256[] memory finalBitfield = bw.subsample(67, initialBitField, 30, setSize);
+        uint256[] memory finalBitfield = bw.subsample(67, initialBitField, 10, setSize);
 
         uint256 counter = 0;
         for (uint256 i = 0; i < bitSetArray.length; i++) {
@@ -28,7 +28,7 @@ contract BitfieldTest is Test {
                 counter++;
             }
         }
-        assertEq(30, counter);
+        assertEq(10, counter);
         assertEq(Bitfield.countSetBits(finalBitfield), counter);
     }
 }

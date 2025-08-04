@@ -87,7 +87,31 @@ enum Command {
     SetPricingParameters,
     TransferNativeToken,
     RegisterForeignToken,
-    MintForeignToken
+    MintForeignToken,
+    /// @dev Below enums are reserved in case upstream snowbridge adds more commands
+    Reserved12,
+    Reserved13,
+    Reserved14,
+    Reserved15,
+    Reserved16,
+    Reserved17,
+    Reserved18,
+    Reserved19,
+    Reserved20,
+    Reserved21,
+    Reserved22,
+    Reserved23,
+    Reserved24,
+    Reserved25,
+    Reserved26,
+    Reserved27,
+    Reserved28,
+    Reserved29,
+    Reserved30,
+    Reserved31,
+    Test,
+    ReportRewards,
+    ReportSlashes
 }
 
 /// @dev DEPRECATED
@@ -107,9 +131,21 @@ struct Ticket {
     ParaID dest;
     Costs costs;
     bytes payload;
+    // amount of native ether to be sent
+    uint128 value;
 }
 
 struct TokenInfo {
     bool isRegistered;
     bytes32 foreignID;
+}
+
+using {isNativeToken} for TokenInfo global;
+
+function isNativeToken(TokenInfo storage info) view returns (bool) {
+    return info.foreignID == bytes32(0);
+}
+
+function isForeignToken(TokenInfo storage info) view returns (bool) {
+    return !info.isNativeToken();
 }
