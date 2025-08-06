@@ -15,6 +15,7 @@ import {Gateway} from "../src/Gateway.sol";
 import {MockGateway} from "./mocks/MockGateway.sol";
 
 import {MockGatewayV2} from "./mocks/MockGatewayV2.sol";
+import {ReantrantAttacker} from "./mocks/ReantrantAttacker.sol";
 import {GatewayProxy} from "../src/GatewayProxy.sol";
 
 import {AgentExecutor} from "../src/AgentExecutor.sol";
