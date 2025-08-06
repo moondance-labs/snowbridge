@@ -13,6 +13,7 @@ import {IUpgradable} from "../src/interfaces/IUpgradable.sol";
 import {Gateway} from "../src/Gateway.sol";
 import {MockGateway} from "./mocks/MockGateway.sol";
 import {MockGatewayV2} from "./mocks/MockGatewayV2.sol";
+import {ReantrantAttacker} from "./mocks/ReantrantAttacker.sol";
 import {GatewayProxy} from "../src/GatewayProxy.sol";
 
 import {AgentExecutor} from "../src/AgentExecutor.sol";
@@ -1252,7 +1253,6 @@ contract GatewayTest is Test {
         bytes memory encodedParams = abi.encode(params);
         MockGateway(address(gateway)).agentExecutePublic(encodedParams);
     }
-<<<<<<< HEAD
 
     function testRegisterForeignTokenAsNativeTokenWillFail() public {
         testRegisterForeignToken();
@@ -1293,6 +1293,3 @@ contract GatewayTest is Test {
         IGateway(address(gateway)).registerToken{value: fee}(address(0));
     }
 }
-=======
-}
->>>>>>> 357cbcb5 (- Fixed gateway rpc + added cancel)
