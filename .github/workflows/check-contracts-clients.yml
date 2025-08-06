@@ -48,10 +48,5 @@ jobs:
       run: |
         go generate ./...
 
-    - name: Debug git diff
-      run: |
-        git diff --stat
-        git status --porcelain
-
     - name: Check if go contract bindings are up-to-date
       run: git diff --exit-code ./relayer/contracts || (echo "The contract bindings are not up-to-date against contracts." && exit 1)
