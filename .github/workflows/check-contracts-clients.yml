@@ -38,6 +38,11 @@ jobs:
     - name: Check abigen
       run: abigen --version
 
+    - name: Build Contracts
+      working-directory: contracts
+      run: |
+        forge build
+
     - name: Generate clients
       working-directory: relayer
       run: |
