@@ -41,7 +41,6 @@ type InboundMessage struct {
 	Id             [32]byte
 }
 
-
 // MultiAddress is an auto generated low-level Go binding around an user-defined struct.
 type MultiAddress struct {
 	Kind uint8
