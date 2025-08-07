@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
-pragma solidity 0.8.25;
+pragma solidity 0.8.28;
 
 import {MerkleProof} from "openzeppelin/utils/cryptography/MerkleProof.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
@@ -38,7 +38,6 @@ import {
     CreateChannelParams,
     UpdateChannelParams,
     SetOperatingModeParams,
-    TransferNativeFromAgentParams,
     SetTokenTransferFeesParams,
     SetPricingParametersParams,
     RegisterForeignTokenParams,
@@ -80,7 +79,7 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
     // Gas used for:
     // 1. Mapping a command id to an implementation function
     // 2. Calling implementation function
-    uint256 DISPATCH_OVERHEAD_GAS = 10_000;
+    uint256 constant DISPATCH_OVERHEAD_GAS = 10_000;
 
     // The maximum fee that can be sent to a destination parachain to pay for execution (DOT).
     // Has two functions:
@@ -152,6 +151,23 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         }
         _;
     }
+    modifier nonreentrant() {
+        assembly {
+            // Check if flag is set and if true revert because it means the function is currently executing.
+            if tload(0) { revert(0, 0) }
+
+            // Set the flag to mark the the function is currently executing.
+            tstore(0, 1)
+        }
+
+        // Execute the function here.
+        _;
+
+        assembly {
+            // Clear the flag as the function has completed execution.
+            tstore(0, 0)
+        }
+    }
 
     constructor(
         address beefyClient,
@@ -182,7 +198,7 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         InboundMessage calldata message,
         bytes32[] calldata leafProof,
         Verification.Proof calldata headerProof
-    ) external {
+    ) external nonreentrant {
         uint256 startGas = gasleft();
 
         Channel storage channel = _ensureChannel(message.channelID);
@@ -242,10 +258,8 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
                 success = false;
             }
         } else if (message.command == Command.TransferNativeFromAgent) {
-            try Gateway(this).transferNativeFromAgent{gas: maxDispatchGas}(message.params) {}
-            catch {
-                success = false;
-            }
+            // DISABLED
+            success = true;
         } else if (message.command == Command.Upgrade) {
             try Gateway(this).upgrade{gas: maxDispatchGas}(message.params) {}
             catch {
@@ -272,7 +286,7 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
                 success = false;
             }
         } else if (message.command == Command.MintForeignToken) {
-            try Gateway(this).mintForeignToken{gas: maxDispatchGas}(message.params) {}
+            try Gateway(this).mintForeignToken{gas: maxDispatchGas}(message.channelID, message.params) {}
             catch {
                 success = false;
             }
@@ -450,16 +464,6 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         emit OperatingModeChanged(params.mode);
     }
 
-    // @dev Transfer funds from an agent to a recipient account
-    function transferNativeFromAgent(bytes calldata data) external onlySelf {
-        TransferNativeFromAgentParams memory params = abi.decode(data, (TransferNativeFromAgentParams));
-
-        address agent = _ensureAgent(params.agentID);
-
-        _transferNativeFromAgent(agent, payable(params.recipient), params.amount);
-        emit AgentFundsWithdrawn(params.agentID, params.recipient, params.amount);
-    }
-
     // @dev Set token fees of the gateway
     function setTokenTransferFees(bytes calldata data) external onlySelf {
         AssetsStorage.Layout storage $ = AssetsStorage.layout();
@@ -490,9 +494,9 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
     }
 
     // @dev Mint foreign token from polkadot
-    function mintForeignToken(bytes calldata data) external onlySelf {
+    function mintForeignToken(ChannelID channelID, bytes calldata data) external onlySelf {
         MintForeignTokenParams memory params = abi.decode(data, (MintForeignTokenParams));
-        Assets.mintForeignToken(params.foreignTokenID, params.recipient, params.amount);
+        Assets.mintForeignToken(channelID, params.foreignTokenID, params.recipient, params.amount);
     }
 
     // @dev Transfer Ethereum native token back from polkadot
@@ -510,9 +514,9 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         if (middlewareAddress == address(0)) {
             revert MiddlewareNotSet();
         }
-
         // Decode
         (IOGateway.SlashParams memory slashes) = abi.decode(data, (IOGateway.SlashParams));
+
         IMiddlewareBasic middleware = IMiddlewareBasic(middlewareAddress);
 
         // At most it will be 10, defined by
@@ -548,7 +552,9 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
             bytes32 foreignTokenId
         ) = abi.decode(data, (uint256, uint256, uint256, uint256, bytes32, bytes32));
 
-        Assets.mintForeignToken(foreignTokenId, middlewareAddress, totalTokensInflated);
+        AssetsStorage.Layout storage $ = AssetsStorage.layout();
+
+        Assets.mintForeignToken($.assetHubParaID.into(),foreignTokenId, middlewareAddress, totalTokensInflated);
 
         address tokenAddress = Assets.tokenAddressOf(foreignTokenId);
 
@@ -579,7 +585,7 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
     }
 
     // Register an Ethereum-native token in the gateway and on AssetHub
-    function registerToken(address token) external payable {
+    function registerToken(address token) external payable nonreentrant {
         _submitOutbound(Assets.registerToken(token));
     }
 
@@ -599,7 +605,7 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
         MultiAddress calldata destinationAddress,
         uint128 destinationFee,
         uint128 amount
-    ) external payable {
+    ) external payable nonreentrant {
         Ticket memory ticket = Assets.sendToken(
             token, msg.sender, destinationChain, destinationAddress, destinationFee, MAX_DESTINATION_FEE, amount
         );
@@ -751,12 +757,6 @@ contract Gateway is IOGateway, IInitializable, IUpgradable {
     function _invokeOnAgent(address agent, bytes memory data) internal returns (bytes memory) {
         (bool success, bytes memory returndata) = (Agent(payable(agent)).invoke(AGENT_EXECUTOR, data));
         return Call.verifyResult(success, returndata);
-    }
-
-    /// @dev Transfer ether from an agent
-    function _transferNativeFromAgent(address agent, address payable recipient, uint256 amount) internal {
-        bytes memory call = abi.encodeCall(AgentExecutor.transferEther, (recipient, amount));
-        _invokeOnAgent(agent, call);
     }
 
     /// @dev Define the dust threshold as the minimum cost to transfer ether between accounts

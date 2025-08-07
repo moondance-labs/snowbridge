@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
-pragma solidity 0.8.25;
+pragma solidity 0.8.28;
 
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
@@ -13,6 +13,7 @@ import {OperatingMode} from "../src/Types.sol";
 import {HelperConfig} from "./HelperConfig.sol";
 import {WETH9} from "canonical-weth/WETH9.sol";
 import {IGateway} from "../src/interfaces/IGateway.sol";
+import {MockGatewayV2} from "../test/mocks/MockGatewayV2.sol";
 
 contract DeployLocal is Script {
     using stdJson for string;
@@ -103,10 +104,14 @@ contract DeployLocal is Script {
         // Deploy WETH for testing
         new WETH9();
 
-        // Fund the gateway proxy contract. Used to reward relayers.
+        // Fund the gateway proxy contract. Used to reward relayers
+        // of messages originating from BridgeHub
         uint256 initialDeposit = vm.envUint("GATEWAY_PROXY_INITIAL_DEPOSIT");
 
         IGateway(address(gateway)).depositEther{value: initialDeposit}();
+
+        // Deploy MockGatewayV2 for testing
+        new MockGatewayV2();
 
         vm.stopBroadcast();
     }
