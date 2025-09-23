@@ -1197,7 +1197,13 @@ contract GatewayTest is Test {
 
         vm.prank(account1);
 
-        vm.expectRevert(Assets.Unsupported.selector);
+        vm.expectEmit(true, true, false, true);
+        emit IGateway.TokenSent(address(dotToken), account1, destPara, recipientAddress32, 1);
+
+        // Expect the gateway to emit `OutboundMessageAccepted`
+        vm.expectEmit(true, false, false, false);
+        emit IGateway.OutboundMessageAccepted(assetHubParaID.into(), 1, messageID, bytes(""));
+
         IGateway(address(gateway)).sendToken{value: 0.1 ether}(address(dotToken), destPara, recipientAddress32, 1, 1);
     }
 
@@ -1211,7 +1217,13 @@ contract GatewayTest is Test {
 
         vm.prank(account1);
 
-        vm.expectRevert(Assets.Unsupported.selector);
+        vm.expectEmit(true, true, false, true);
+        emit IGateway.TokenSent(address(dotToken), account1, destPara, recipientAddress20, 1);
+
+        // Expect the gateway to emit `OutboundMessageAccepted`
+        vm.expectEmit(true, false, false, false);
+        emit IGateway.OutboundMessageAccepted(assetHubParaID.into(), 1, messageID, bytes(""));
+
         IGateway(address(gateway)).sendToken{value: 0.1 ether}(address(dotToken), destPara, recipientAddress20, 1, 1);
     }
 
