@@ -30,5 +30,10 @@ contract GatewayTanssi202509 is Gateway {
         if (ERC1967.load() == address(0)) {
             revert Unauthorized();
         }
+
+        // register the address 0 token
+        AssetsStorage.Layout storage assets = AssetsStorage.layout();
+        TokenInfo storage etherTokenInfo = assets.tokenRegistry[address(0)];
+        etherTokenInfo.isRegistered = true;
     }
 }
