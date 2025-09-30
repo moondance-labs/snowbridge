@@ -9,6 +9,7 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {GatewayTanssi202509} from "../src/upgrades/GatewayTanssi202509.sol";
 import {HelperConfig} from "./HelperConfig.sol";
 import {UpgradeParams} from "../src/Params.sol";
+import {AgentExecutor} from "../src/AgentExecutor.sol";
 
 contract DeployLocal is Script {
     using stdJson for string;
@@ -29,15 +30,19 @@ contract DeployLocal is Script {
         vm.startBroadcast();
         HelperConfig.GatewayConfig memory gatewayConfig = helperConfig.getGatewayConfig();
 
+        // Needed for the native transfer feature
+        AgentExecutor agentExecutor = new AgentExecutor();
+
         GatewayTanssi202509 gatewayLogic = new GatewayTanssi202509(
             address(gatewayConfig.beefyClient),
-            address(gatewayConfig.agentExecutor),
+            address(agentExecutor),
             gatewayConfig.bridgeHubParaID,
             gatewayConfig.bridgeHubAgentID,
             gatewayConfig.foreignTokenDecimals,
             gatewayConfig.maxDestinationFee
         );
 
+        console2.log("AgentExecutor: ", address(agentExecutor));
         console2.log("Gateway logic impl: ", address(gatewayLogic));
         console2.log("Gateway logic codehash: ");
         console2.logBytes32(address(gatewayLogic).codehash);
