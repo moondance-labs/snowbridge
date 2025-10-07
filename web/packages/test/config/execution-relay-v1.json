@@ -16,16 +16,12 @@
         "epochsPerSyncCommitteePeriod": 256,
         "forkVersions": {
           "deneb": 0,
-<<<<<<< HEAD
-          "electra": 2000000
-=======
           "electra": 0,
           "fulu": 50000000
->>>>>>> 1d248dfb (fulu changes)
         }
       },
       "datastore": {
-        "location": "/tmp/snowbridge/beaconstore",
+        "location": "/tmp/snowbridge-v2/beaconstore",
         "maxEntries": 100
       }
     }
@@ -41,7 +37,7 @@
   "instantVerification": false,
   "schedule": {
     "id": null,
-    "totalRelayerCount": 3,
+    "totalRelayerCount": 1,
     "sleepInterval": 20
   },
   "ofac": {
