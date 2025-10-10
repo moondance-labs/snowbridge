@@ -81,46 +81,57 @@ type ForkVersion string
 const (
 	Deneb   ForkVersion = "Deneb"
 	Electra ForkVersion = "Electra"
+	Fulu    ForkVersion = "Fulu"
 )
 
 func (p *Protocol) ForkVersion(slot uint64) ForkVersion {
 	epoch := p.ComputeEpochAtSlot(slot)
+	fv := Deneb
 	if epoch >= p.Settings.ForkVersions.Electra {
-		return Electra
+		fv = Electra
 	}
-	return Deneb
+	if epoch >= p.Settings.ForkVersions.Fulu {
+		fv = Fulu
+	}
+	log.WithField("fork_version", fv).Info("Found fork version")
+	return fv
 }
 
 func (p *Protocol) BlockRootGeneralizedIndex(slot uint64) int {
-	if p.ForkVersion(slot) == Electra {
+	forkVersion := p.ForkVersion(slot)
+	if forkVersion == Fulu || forkVersion == Electra {
 		return ElectraBlockRootGeneralizedIndex
 	}
 	return AltairBlockRootGeneralizedIndex
 }
 
 func (p *Protocol) FinalizedCheckpointGeneralizedIndex(slot uint64) int {
-	if p.ForkVersion(slot) == Electra {
+	forkVersion := p.ForkVersion(slot)
+	if forkVersion == Fulu || forkVersion == Electra {
 		return ElectraFinalizedCheckpointGeneralizedIndex
 	}
 	return AltairFinalizedCheckpointGeneralizedIndex
 }
 
 func (p *Protocol) CurrentSyncCommitteeGeneralizedIndex(slot uint64) int {
-	if p.ForkVersion(slot) == Electra {
+	forkVersion := p.ForkVersion(slot)
+	if forkVersion == Fulu || forkVersion == Electra {
 		return ElectraCurrentSyncCommitteeGeneralizedIndex
 	}
 	return AltairCurrentSyncCommitteeGeneralizedIndex
 }
 
 func (p *Protocol) NextSyncCommitteeGeneralizedIndex(slot uint64) int {
-	if p.ForkVersion(slot) == Electra {
+	forkVersion := p.ForkVersion(slot)
+	if forkVersion == Fulu || forkVersion == Electra {
 		return ElectraNextSyncCommitteeGeneralizedIndex
 	}
 	return AltairNextSyncCommitteeGeneralizedIndex
 }
 
 func (p *Protocol) ExecutionPayloadGeneralizedIndex(slot uint64) int {
-	if p.ForkVersion(slot) == Electra {
+	forkVersion := p.ForkVersion(slot)
+	if forkVersion == Fulu || forkVersion == Electra {
 		return ElectraExecutionPayloadGeneralizedIndex
 	}
 	return AltairExecutionPayloadGeneralizedIndex
