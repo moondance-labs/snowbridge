@@ -1,7 +1,7 @@
 {
   "1": {
     "beefyClient": "0x68cfb0df884e488e362690408231c316ed7348af",
-    "agentExecutor": "0xAD4a6D5DAe036fe490b34C08c7085C6B2Ae69969",
+    "agentExecutor": "0x5e06dde7533d94aE25f3ee12c8ACe848b618E5e5",
     "bridgeHubParaID": 1,
     "bridgeHubAgentID": "0x03170a2e7597b7b7e3d84c05391d139a62b157e78786d8c082f29dcf4c111314",
     "foreignTokenDecimals": 12,
@@ -42,7 +42,7 @@
   "11155111": {
     "stagelight": {
       "beefyClient": "0xD4C3B70Ac1547D66Bc89F8607C58Dd544412e8B7",
-      "agentExecutor": "0x32B9e969CA66c181405eF9F83b5C0350D2843c5A",
+      "agentExecutor": "0xd1668df5B8ff617De25544085aA126FCC9871559",
       "bridgeHubParaID": 1,
       "bridgeHubAgentID": "0x03170a2e7597b7b7e3d84c05391d139a62b157e78786d8c082f29dcf4c111314",
       "foreignTokenDecimals": 12,
@@ -62,7 +62,7 @@
     },
     "dancelight": {
       "beefyClient": "0xe8dd26d2ec505ac7e51740da84ba2ce9f01a2431",
-      "agentExecutor": "0x5da02b29cDAFb72b4a2Ac9113e47aDdFde940c49",
+      "agentExecutor": "0xaA8fB051b48518391C655FAa146FF1da76C81755",
       "bridgeHubParaID": 1,
       "bridgeHubAgentID": "0x03170a2e7597b7b7e3d84c05391d139a62b157e78786d8c082f29dcf4c111314",
       "foreignTokenDecimals": 12,
