@@ -16,6 +16,9 @@ node_modules/
 /relaychain/
 .vscode
 
+.history/
+.env
+
 /.rustup/
 .cargo/
 !.cargo/config.toml
