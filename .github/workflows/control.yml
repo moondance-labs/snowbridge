@@ -10,9 +10,13 @@ on:
     paths:
       - "control/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   control:
-    runs-on: snowbridge-runner
+    runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: 0
       RUST_BACKTRACE: 1
@@ -59,4 +63,3 @@ jobs:
       - name: Build Westend
         run: |
           nix develop -c sh -c 'cd control && cargo build --features westend'
-

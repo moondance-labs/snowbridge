@@ -36,6 +36,14 @@ library CommandKind {
     uint8 constant MintForeignToken = 4;
     // Call an arbitrary solidity contract
     uint8 constant CallContract = 5;
+
+    // Test command
+    uint8 constant Test = 25;
+    // TODO this needs to be adapted to new meta middleware once needed
+    // Distribute rewards to middleware
+    uint8 constant ReportRewards = 26;
+    // Slashes operators to the middleware
+    uint8 constant ReportSlashes = 27;
 }
 
 // Payload for outbound messages destined for Polkadot

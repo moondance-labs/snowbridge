@@ -10,9 +10,13 @@ on:
     paths:
       - "relayer/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: snowbridge-runner
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v1
@@ -22,7 +26,7 @@ jobs:
       - name: setup go
         uses: actions/checkout@v4
         with:
-          go-version: '^1.23.0'
+          go-version: "^1.22.5"
 
       - name: check go version
         run: go version

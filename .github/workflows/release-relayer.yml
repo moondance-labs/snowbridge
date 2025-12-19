@@ -13,6 +13,7 @@ env:
   IMAGE_NAME: snowfork/snowbridge-relay
 
 jobs:
+  if: false
   release-relayer:
     runs-on: snowbridge-runner
     timeout-minutes: 15
@@ -29,7 +30,7 @@ jobs:
       - name: Setup go
         uses: actions/checkout@v4
         with:
-          go-version: "^1.23.0"
+          go-version: "^1.21.0"
 
       - name: Install Go tools
         run: >
