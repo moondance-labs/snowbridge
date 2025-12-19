@@ -7,7 +7,6 @@ import {Verification} from "./Verification.sol";
 import {Initializer} from "./Initializer.sol";
 import {AgentExecutor} from "./AgentExecutor.sol";
 import {Agent} from "./Agent.sol";
-import {IGatewayBase} from "./interfaces/IGatewayBase.sol";
 import {
     OperatingMode,
     ParaID,
@@ -43,10 +42,15 @@ import {Constants} from "./Constants.sol";
 import {CoreStorage} from "./storage/CoreStorage.sol";
 import {PricingStorage} from "./storage/PricingStorage.sol";
 import {AssetsStorage} from "./storage/AssetsStorage.sol";
+import {GatewayCoreStorage} from "./storage/GatewayCoreStorage.sol";
 
 import {UD60x18, ud60x18, convert} from "prb/math/src/UD60x18.sol";
 
-contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgradable {
+import {IOGateway} from "./interfaces/IOGateway.sol";
+import {IMiddlewareBasic} from "./interfaces/IMiddlewareBasic.sol";
+
+// TODO Fix interface imports
+contract Gateway is IOGateway, IGatewayV1, IGatewayV2, IInitializable, IUpgradable {
     using Address for address;
     using SafeNativeTransfer for address payable;
 
@@ -59,7 +63,25 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
     // Message handlers can only be dispatched by the gateway itself
     modifier onlySelf() {
         if (msg.sender != address(this)) {
-            revert IGatewayBase.Unauthorized();
+            revert Unauthorized();
+        }
+        _;
+    }
+
+    // Can only be called by the owner of the contract.
+    modifier onlyOwner() {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        if (msg.sender != layout.owner) {
+            revert Unauthorized();
+        }
+        _;
+    }
+
+    // Can only be called by the middleware
+    modifier onlyMiddleware() {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        if (msg.sender != layout.middleware) {
+            revert Unauthorized();
         }
         _;
     }
@@ -149,7 +171,7 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
 
         // Ensure this message is not being replayed
         if (message.nonce != channel.inboundNonce + 1) {
-            revert IGatewayBase.InvalidNonce();
+            revert InvalidNonce();
         }
 
         // Increment nonce for origin.
@@ -163,14 +185,14 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
 
         // Verify that the commitment is included in a parachain header finalized by BEEFY.
         if (!_verifyCommitment(commitment, headerProof, false)) {
-            revert IGatewayBase.InvalidProof();
+            revert InvalidProof();
         }
 
         // Make sure relayers provide enough gas so that inner message dispatch
         // does not run out of gas.
         uint256 maxDispatchGas = message.maxDispatchGas;
         if (gasleft() < maxDispatchGas + DISPATCH_OVERHEAD_GAS_V1) {
-            revert IGatewayBase.NotEnoughGas();
+            revert NotEnoughGas();
         }
 
         bool success = true;
@@ -214,11 +236,34 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
         } else if (message.command == CommandV1.MintForeignToken) {
             try Gateway(this).v1_handleMintForeignToken{gas: maxDispatchGas}(
                 message.channelID, message.params
-            ) {} catch {
+            ) {}
+            catch {
+                success = false;
+            }
+        } else if (message.command == CommandV1.ReportSlashes) {
+            // We need to put all this inside a generic try-catch, since we dont want to revert decoding nor anything
+            try Gateway(this).reportSlashes{gas: maxDispatchGas}(message.params) {}
+            catch Error(string memory err) {
+                emit UnableToProcessSlashMessageS(err);
+                success = false;
+            } catch (bytes memory err) {
+                emit UnableToProcessSlashMessageB(err);
+                success = false;
+            }
+        } else if (message.command == CommandV1.ReportRewards) {
+            try Gateway(this).sendRewards{gas: maxDispatchGas}(
+                message.channelID, message.params
+            ) {}
+            catch Error(string memory err) {
+                emit UnableToProcessRewardsMessageS(err);
+                success = false;
+            } catch (bytes memory err) {
+                emit UnableToProcessRewardsMessageB(err);
                 success = false;
             }
         } else {
             success = false;
+            emit NotImplementedCommand(message.command);
         }
 
         // Calculate a gas refund, capped to protect against huge spikes in `tx.gasprice`
@@ -238,6 +283,18 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
         emit IGatewayV1.InboundMessageDispatched(
             message.channelID, message.nonce, message.id, success
         );
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        GatewayCoreStorage.transferOwnership(newOwner);
+    }
+
+    function setMiddleware(address middleware) external onlyOwner {
+        GatewayCoreStorage.setMiddleware(middleware);
+    }
+
+    function s_middleware() external view returns (address) {
+        return GatewayCoreStorage.s_middleware();
     }
 
     function operatingMode()
@@ -328,6 +385,11 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
         return CallsV1.tokenAddressOf(tokenID);
     }
 
+    // Send operators data to substrate
+    function sendOperatorsData(bytes32[] calldata data, uint48 epoch) external onlyMiddleware {
+        CallsV1.sendOperatorsData(data, epoch);
+    }
+
     /**
      * APIv1 Inbound Message Handlers
      */
@@ -340,6 +402,11 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
     /// @dev Perform an upgrade of the gateway
     function v1_handleUpgrade(bytes calldata data) external onlySelf {
         HandlersV1.upgrade(data);
+    }
+
+    /// Performs upgrade through the owner
+    function upgradeOnlyOwner(bytes calldata data) external onlyOwner {
+        Gateway(this).v1_handleUpgrade(data);
     }
 
     // @dev Set the operating mode of the gateway
@@ -373,6 +440,90 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
         onlySelf
     {
         HandlersV1.mintForeignToken(channelID, data);
+    }
+
+    // TODO TO move this to v1 and v2.
+    // @dev Mint foreign token from polkadot
+    function reportSlashes(bytes calldata data) external onlySelf {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        address middlewareAddress = layout.middleware;
+        // Dont process message if we dont have a middleware set
+        if (middlewareAddress == address(0)) {
+            revert MiddlewareNotSet();
+        }
+
+        // Decode
+        (IOGateway.SlashParams memory slashes) = abi.decode(data, (IOGateway.SlashParams));
+        IMiddlewareBasic middleware = IMiddlewareBasic(middlewareAddress);
+
+        // At most it will be 10, defined by
+        // https://github.com/moondance-labs/tanssi/blob/88e59e6e5afb198947690487f286b9ad7cd4cde6/chains/orchestrator-relays/runtime/dancelight/src/lib.rs#L1446
+        for (uint256 i = 0; i < slashes.slashes.length; ++i) {
+            Slash memory slash = slashes.slashes[i];
+            //TODO maxDispatchGas should be probably be defined for all slashes, not only for one
+            try middleware.slash(uint48(slash.epoch), slash.operatorKey, slash.slashFraction) {}
+            catch Error(string memory err) {
+                emit UnableToProcessIndividualSlashS(
+                    slash.operatorKey, slash.slashFraction, slash.epoch, err
+                );
+                continue;
+            } catch (bytes memory err) {
+                emit UnableToProcessIndividualSlashB(
+                    slash.operatorKey, slash.slashFraction, slash.epoch, err
+                );
+                continue;
+            }
+        }
+    }
+
+    function sendRewards(ChannelID channelID, bytes calldata data) external onlySelf {
+        GatewayCoreStorage.Layout storage layout = GatewayCoreStorage.layout();
+        address middlewareAddress = layout.middleware;
+        // Dont process message if we dont have a middleware set
+        if (middlewareAddress == address(0)) {
+            revert MiddlewareNotSet();
+        }
+
+        (
+            uint256 epoch,
+            uint256 eraIndex,
+            uint256 totalPointsToken,
+            uint256 totalTokensInflated,
+            bytes32 rewardsRoot,
+            bytes32 foreignTokenId
+        ) = abi.decode(data, (uint256, uint256, uint256, uint256, bytes32, bytes32));
+
+        bytes memory foreignTokenData =
+            abi.encode(foreignTokenId, middlewareAddress, totalTokensInflated);
+        HandlersV1.mintForeignToken(channelID, foreignTokenData);
+
+        address tokenAddress = CallsV1.tokenAddressOf(foreignTokenId);
+
+        try IMiddlewareBasic(middlewareAddress)
+            .distributeRewards(
+                epoch, eraIndex, totalPointsToken, totalTokensInflated, rewardsRoot, tokenAddress
+            ) {}
+        catch Error(string memory err) {
+            revert EUnableToProcessRewardsS(
+                epoch,
+                eraIndex,
+                tokenAddress,
+                totalPointsToken,
+                totalTokensInflated,
+                rewardsRoot,
+                err
+            );
+        } catch (bytes memory err) {
+            revert EUnableToProcessRewardsB(
+                epoch,
+                eraIndex,
+                tokenAddress,
+                totalPointsToken,
+                totalTokensInflated,
+                rewardsRoot,
+                err
+            );
+        }
     }
 
     /**
@@ -418,7 +569,7 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
         bytes32 leafHash = keccak256(abi.encode(message));
 
         if ($.inboundNonce.get(message.nonce)) {
-            revert IGatewayBase.InvalidNonce();
+            revert InvalidNonce();
         }
 
         $.inboundNonce.set(message.nonce);
@@ -428,7 +579,7 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
 
         // Verify that the commitment is included in a parachain header finalized by BEEFY.
         if (!_verifyCommitment(commitment, headerProof, true)) {
-            revert IGatewayBase.InvalidProof();
+            revert InvalidProof();
         }
 
         // Dispatch the message payload
@@ -525,39 +676,46 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
             if (message.commands[i].kind == CommandKind.Upgrade) {
                 try Gateway(this).v2_handleUpgrade{gas: message.commands[i].gas}(
                     message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
             } else if (message.commands[i].kind == CommandKind.SetOperatingMode) {
                 try Gateway(this).v2_handleSetOperatingMode{gas: message.commands[i].gas}(
                     message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
             } else if (message.commands[i].kind == CommandKind.UnlockNativeToken) {
                 try Gateway(this).v2_handleUnlockNativeToken{gas: message.commands[i].gas}(
                     message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
             } else if (message.commands[i].kind == CommandKind.RegisterForeignToken) {
                 try Gateway(this).v2_handleRegisterForeignToken{gas: message.commands[i].gas}(
                     message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
             } else if (message.commands[i].kind == CommandKind.MintForeignToken) {
                 try Gateway(this).v2_handleMintForeignToken{gas: message.commands[i].gas}(
                     message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
             } else if (message.commands[i].kind == CommandKind.CallContract) {
                 try Gateway(this).v2_handleCallContract{gas: message.commands[i].gas}(
                     message.origin, message.commands[i].payload
-                ) {} catch {
+                ) {}
+                catch {
                     return false;
                 }
+                // TODO to add here new tanssi commands
             } else {
                 // Unknown command
                 return false;
@@ -596,6 +754,7 @@ contract Gateway is IGatewayBase, IGatewayV1, IGatewayV2, IInitializable, IUpgra
     /// ```
     ///
     function initialize(bytes calldata data) external virtual {
+        GatewayCoreStorage.transferOwnership(msg.sender);
         Initializer.initialize(data);
     }
 }

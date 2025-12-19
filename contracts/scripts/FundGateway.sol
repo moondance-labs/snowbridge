@@ -5,8 +5,8 @@ pragma solidity 0.8.28;
 import {WETH9} from "canonical-weth/WETH9.sol";
 import {Script} from "forge-std/Script.sol";
 import {BeefyClient} from "../src/BeefyClient.sol";
-import {IGatewayV1} from "../src/v1/IGateway.sol";
-import {IGatewayV2} from "../src/v2/IGateway.sol";
+
+import {IGatewayV1} from "../src/Types.sol";
 import {GatewayProxy} from "../src/GatewayProxy.sol";
 import {Gateway} from "../src/Gateway.sol";
 import {Agent} from "../src/Agent.sol";

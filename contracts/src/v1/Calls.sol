@@ -29,6 +29,8 @@ import {
 import {IGatewayBase} from "../interfaces/IGatewayBase.sol";
 import {IGatewayV1} from "./IGateway.sol";
 import {UD60x18, ud60x18, convert} from "prb/math/src/UD60x18.sol";
+import {Operators} from "../Operators.sol";
+import {Constants} from "../Constants.sol";
 
 /// @title Library for implementing Ethereum->Polkadot ERC20 transfers.
 library CallsV1 {
@@ -176,6 +178,11 @@ library CallsV1 {
         return $.tokenAddressOf[tokenID];
     }
 
+    function sendOperatorsData(bytes32[] calldata data, uint48 epoch) external {
+        Ticket memory ticket = Operators.encodeOperatorsData(data, epoch);
+        _submitOutboundToChannel(Constants.PRIMARY_GOVERNANCE_CHANNEL_ID, ticket.payload);
+    }
+
     /*
     * Internal functions
     */
@@ -247,6 +254,26 @@ library CallsV1 {
 
         emit IGatewayV1.OutboundMessageAccepted(
             channelID, channel.outboundNonce, messageID, ticket.payload
+        );
+    }
+
+    // Submit an outbound message to a specific channel.
+    // Doesn't handle fees.
+    function _submitOutboundToChannel(ChannelID channelID, bytes memory payload) internal {
+        Channel storage channel = Functions.ensureChannel(channelID);
+
+        // Ensure outbound messaging is allowed
+        _ensureOutboundMessagingEnabled(channel);
+
+        // Increase channel nonce
+        channel.outboundNonce = channel.outboundNonce + 1;
+
+        // Generate a unique ID for this message
+        bytes32 messageID = keccak256(abi.encodePacked(channelID, channel.outboundNonce));
+
+        // Emit event for bridge
+        emit IGatewayV1.OutboundMessageAccepted(
+            channelID, channel.outboundNonce, messageID, payload
         );
     }
 

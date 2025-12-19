@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
 pragma solidity 0.8.28;
 
-import {ParaID} from "./Types.sol";
+import {ParaID} from "./v1/Types.sol";
 import {SubstrateTypes} from "./SubstrateTypes.sol";
 
 import {IERC20} from "./interfaces/IERC20.sol";

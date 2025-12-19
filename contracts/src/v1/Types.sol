@@ -2,8 +2,13 @@
 // SPDX-FileCopyrightText: 2023 Snowfork <hello@snowfork.com>
 pragma solidity 0.8.28;
 
+import {
+    MultiAddress,
+    multiAddressFromUint32,
+    multiAddressFromBytes32,
+    multiAddressFromBytes20
+} from "./MultiAddress.sol";
 import {TokenInfo, OperatingMode} from "../types/Common.sol";
-import {MultiAddress} from "./MultiAddress.sol";
 import {UD60x18} from "prb/math/src/UD60x18.sol";
 
 type ParaID is uint32;
@@ -80,7 +85,31 @@ enum Command {
     SetPricingParameters,
     UnlockNativeToken,
     RegisterForeignToken,
-    MintForeignToken
+    MintForeignToken,
+    /// @dev Below enums are reserved in case upstream snowbridge adds more commands
+    Reserved12,
+    Reserved13,
+    Reserved14,
+    Reserved15,
+    Reserved16,
+    Reserved17,
+    Reserved18,
+    Reserved19,
+    Reserved20,
+    Reserved21,
+    Reserved22,
+    Reserved23,
+    Reserved24,
+    Reserved25,
+    Reserved26,
+    Reserved27,
+    Reserved28,
+    Reserved29,
+    Reserved30,
+    Reserved31,
+    Test,
+    ReportRewards,
+    ReportSlashes
 }
 
 // Deprecated

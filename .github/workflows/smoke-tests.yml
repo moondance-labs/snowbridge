@@ -9,9 +9,13 @@ on:
     # Runs at 8:00 AM every day
     - cron: "0 8 * * *"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   smoketests:
-    runs-on: snowbridge-runner
+    runs-on: ubuntu-latest
     env:
       CARGO_INCREMENTAL: 0
       RUST_BACKTRACE: 1
@@ -40,7 +44,7 @@ jobs:
         run: echo "POLKADOT_SDK_DIR=./polkadot-sdk" >> $GITHUB_ENV
       - name: Create directories
         run: mkdir -p $OUTPUT_DIR &&  mkdir -p $LOG_DIR
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
@@ -63,12 +67,12 @@ jobs:
           ./scripts/run-smoketests.sh'
         continue-on-error: true
       - name: Save start-services log file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: start-services.log
           path: "${{ env.LOG_DIR }}/start-services.log"
       - name: Save beacon-relay log file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: beacon-relay.log
           path: "${{ env.OUTPUT_DIR }}/beacon-relay.log"
