@@ -48,7 +48,6 @@ contract HelperConfig is Script {
         uint128 assetHubReserveTransferFee;
         UD60x18 exchangeRate;
         UD60x18 multiplier;
-        uint128 maxDestinationFee;
     }
 
     uint256 public DEFAULT_ANVIL_PRIVATE_KEY =
@@ -186,9 +185,6 @@ contract HelperConfig is Script {
             ),
             multiplier: abi.decode(
                 vm.parseJson(json, string.concat(jsonPath, ".multiplier")), (UD60x18)
-            ),
-            maxDestinationFee: abi.decode(
-                vm.parseJson(json, string.concat(jsonPath, ".maxDestinationFee")), (uint128)
             )
         });
     }
